@@ -1,0 +1,58 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+}
+
+.font-industrial {
+  font-family: 'Oswald', sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.font-mono-numbers {
+  font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Custom industrial hazard stripes */
+.bg-hazard-stripes {
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(250, 149, 73, 0.15),
+    rgba(250, 149, 73, 0.15) 12px,
+    rgba(20, 24, 29, 0.3) 12px,
+    rgba(20, 24, 29, 0.3) 24px
+  );
+}
+
+.bg-hazard-stripes-danger {
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(239, 68, 68, 0.2),
+    rgba(239, 68, 68, 0.2) 10px,
+    rgba(20, 24, 29, 0.4) 10px,
+    rgba(20, 24, 29, 0.4) 20px
+  );
+}
+
+/* Subtle sleek scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #12161b;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a333d;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #fa9549;
+}

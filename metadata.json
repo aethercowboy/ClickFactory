@@ -1,0 +1,6 @@
+{
+  "name": "FICSIT Pioneer: Factory Automation",
+  "description": "An idle factory automation clicker inspired by Satisfactory. Extract ores, craft components, manage power grids, research MAM tech trees, and send project parts up the Space Elevator.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
