@@ -35,6 +35,7 @@ export default function App() {
     sinkItem,
     buyShopItem,
     addNotification,
+    dismissNotification,
   } = useGameLoop();
 
   const [activeTab, setActiveTab] = useState<string>('extraction');
@@ -181,12 +182,12 @@ export default function App() {
         )}
       </main>
 
-      {/* Persistent Notification Toasts */}
+      {/* Notification Toasts (with auto-dismiss and close button) */}
       <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm pointer-events-none">
         {notifications.map(notif => (
           <div
             key={notif.id}
-            className={`pointer-events-auto p-3.5 rounded-xl border shadow-xl flex items-start gap-3 backdrop-blur-md font-mono-numbers text-xs transition-all ${
+            className={`pointer-events-auto p-3.5 rounded-xl border shadow-xl flex items-start justify-between gap-3 backdrop-blur-md font-mono-numbers text-xs transition-all animate-in fade-in slide-in-from-bottom-2 ${
               notif.type === 'power_trip'
                 ? 'bg-red-950/90 border-red-500 text-red-200'
                 : notif.type === 'milestone' || notif.type === 'elevator'
@@ -196,23 +197,33 @@ export default function App() {
                 : 'bg-[#151b22]/95 border-[#2c3744] text-slate-200'
             }`}
           >
-            <div className="pt-0.5 shrink-0">
-              {notif.type === 'power_trip' ? (
-                <AlertCircle className="w-4 h-4 text-red-400" />
-              ) : notif.type === 'elevator' ? (
-                <Rocket className="w-4 h-4 text-[#fa9549]" />
-              ) : (
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              )}
-            </div>
-            <div>
-              <div className="font-bold font-industrial tracking-wide text-white">
-                {notif.title}
+            <div className="flex items-start gap-3">
+              <div className="pt-0.5 shrink-0">
+                {notif.type === 'power_trip' ? (
+                  <AlertCircle className="w-4 h-4 text-red-400" />
+                ) : notif.type === 'elevator' ? (
+                  <Rocket className="w-4 h-4 text-[#fa9549]" />
+                ) : (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                )}
               </div>
-              <div className="text-[11px] opacity-90 mt-0.5 leading-snug">
-                {notif.message}
+              <div>
+                <div className="font-bold font-industrial tracking-wide text-white">
+                  {notif.title}
+                </div>
+                <div className="text-[11px] opacity-90 mt-0.5 leading-snug">
+                  {notif.message}
+                </div>
               </div>
             </div>
+
+            <button
+              onClick={() => dismissNotification(notif.id)}
+              className="p-1 rounded hover:bg-white/10 text-slate-400 hover:text-white transition-colors shrink-0"
+              title="Dismiss notification"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
           </div>
         ))}
       </div>

@@ -37,15 +37,25 @@ export function useGameLoop() {
   const ratesConsumedRef = useRef<Record<ItemId, number>>({} as any);
   const lastRateUpdateRef = useRef<number>(Date.now());
 
+  const dismissNotification = useCallback((id: string) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  }, []);
+
   const addNotification = useCallback((title: string, message: string, type: GameNotification['type'] = 'info') => {
+    const id = Math.random().toString(36).substring(2, 9);
     const notif: GameNotification = {
-      id: Math.random().toString(36).substring(2, 9),
+      id,
       title,
       message,
       type,
       timestamp: Date.now(),
     };
     setNotifications(prev => [notif, ...prev].slice(0, 5));
+
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    }, 5000);
   }, []);
 
   // Manual Mine click handler
@@ -757,5 +767,6 @@ export function useGameLoop() {
     sinkItem,
     buyShopItem,
     addNotification,
+    dismissNotification,
   };
 }

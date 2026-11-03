@@ -1293,9 +1293,9 @@ export const ALL_RECIPES: RecipeDef[] = [
     machineType: 'manufacturer',
     inputs: [
       { itemId: 'versatile_framework', amount: 5 },
-      { itemId: 'electromagnetic_control_rod' as any, amount: 2 }, // or stator / high speed connector
+      { itemId: 'stator', amount: 5 },
       { itemId: 'high_speed_connector', amount: 2 },
-    ].filter(i => ALL_ITEMS[i.itemId as ItemId] !== undefined) as any,
+    ],
     outputs: [{ itemId: 'magnetic_field_generator', amount: 2 }],
     craftTime: 20,
     tierUnlocked: 8,

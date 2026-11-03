@@ -7,12 +7,11 @@ export const ALL_MILESTONES: MilestoneDef[] = [
     tier: 0,
     name: 'HUB Upgrade 1: Equipment Workshop',
     description: 'Establish the initial FICSIT pioneer operational outpost. Unlocks portable mining drills.',
-    cost: [{ itemId: 'iron_rod', amount: 10 }],
+    cost: [{ itemId: 'iron_ore', amount: 10 }],
     rewards: ['Portable Miner', 'Equipment Workshop'],
     unlocks: {
       buildings: ['portable_miner'],
       recipes: ['recipe_iron_plate', 'recipe_iron_rod'],
-      ores: ['iron_ore', 'leaves'],
     },
   },
   {
@@ -124,13 +123,19 @@ export const ALL_MILESTONES: MilestoneDef[] = [
     description: 'Construct automated 2-input Assemblers for Rotors, Modular Frames, and Project Assembly parts.',
     cost: [
       { itemId: 'reinforced_plate', amount: 50 },
-      { itemId: 'rotor', amount: 50 },
+      { itemId: 'screw', amount: 300 },
       { itemId: 'cable', amount: 100 },
     ],
-    rewards: ['Assembler', 'Rotor Recipe', 'Modular Frame Recipe', 'Smart Plating (Space Elevator)'],
+    rewards: ['Assembler', 'Rotor Recipe', 'Modular Frame Recipe', 'Smart Plating (Space Elevator)', 'Quartz Processing'],
     unlocks: {
       buildings: ['assembler'],
-      recipes: ['recipe_rotor', 'recipe_modular_frame', 'recipe_smart_plating'],
+      recipes: [
+        'recipe_rotor',
+        'recipe_modular_frame',
+        'recipe_smart_plating',
+        'recipe_quartz_crystal',
+        'recipe_silica',
+      ],
       ores: ['raw_quartz'],
     },
   },
@@ -239,10 +244,10 @@ export const ALL_MILESTONES: MilestoneDef[] = [
       { itemId: 'plastic', amount: 200 },
       { itemId: 'rubber', amount: 200 },
     ],
-    rewards: ['Manufacturer', 'Computer Recipe', 'Crystal Oscillator'],
+    rewards: ['Manufacturer', 'Computer Recipe', 'Heavy Modular Frame Recipe', 'Crystal Oscillator'],
     unlocks: {
       buildings: ['manufacturer'],
-      recipes: ['recipe_computer', 'recipe_crystal_oscillator'],
+      recipes: ['recipe_computer', 'recipe_heavy_modular_frame', 'recipe_crystal_oscillator'],
     },
   },
 
@@ -257,10 +262,10 @@ export const ALL_MILESTONES: MilestoneDef[] = [
       { itemId: 'heavy_modular_frame', amount: 50 },
       { itemId: 'motor', amount: 100 },
     ],
-    rewards: ['Fuel Generator', 'Turbofuel Synthesis', 'Heavy Modular Frame'],
+    rewards: ['Fuel Generator', 'Turbofuel Synthesis', 'Modular Engine', 'Adaptive Control Unit'],
     unlocks: {
       buildings: ['fuel_generator'],
-      recipes: ['recipe_heavy_modular_frame', 'recipe_turbofuel', 'recipe_modular_engine', 'recipe_adaptive_control_unit'],
+      recipes: ['recipe_turbofuel', 'recipe_modular_engine', 'recipe_adaptive_control_unit'],
     },
   },
 
@@ -275,7 +280,7 @@ export const ALL_MILESTONES: MilestoneDef[] = [
       { itemId: 'heavy_modular_frame', amount: 100 },
       { itemId: 'rubber', amount: 500 },
     ],
-    rewards: ['Miner Mk.3', 'Blender', 'Aluminum Ingot', 'Aluminum Casing', 'Radio Control Unit', 'Supercomputer'],
+    rewards: ['Miner Mk.3', 'Blender', 'Aluminum Ingot', 'Aluminum Casing', 'Radio Control Unit', 'Supercomputer', 'High-Speed Connector'],
     unlocks: {
       buildings: ['miner_mk3', 'blender'],
       ores: ['bauxite'],
@@ -285,6 +290,7 @@ export const ALL_MILESTONES: MilestoneDef[] = [
         'recipe_aluminum_casing',
         'recipe_radio_control_unit',
         'recipe_supercomputer',
+        'recipe_high_speed_connector',
       ],
     },
   },

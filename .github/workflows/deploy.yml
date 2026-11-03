@@ -40,6 +40,9 @@ jobs:
             npm install --legacy-peer-deps
           fi
 
+      - name: Run progression circularity tests
+        run: npm test
+
       - name: Build project
         run: npm run build
 
