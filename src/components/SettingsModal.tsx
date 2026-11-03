@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { GameSaveData } from '../types/game';
 import { exportSave, importSave, INITIAL_SAVE } from '../utils/saveLoad';
-import { Settings, Download, Upload, RotateCcw, Volume2, VolumeX, Check } from 'lucide-react';
+import { Settings, Download, Upload, RotateCcw, Volume2, VolumeX, Check, ExternalLink } from 'lucide-react';
 import { audio } from '../utils/audio';
+import { APP_VERSION } from '../version';
 
 interface SettingsModalProps {
   gameState: GameSaveData;
@@ -56,6 +57,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <h3 className="font-industrial text-lg font-bold text-white tracking-wide">
               Pioneer Terminal Settings
             </h3>
+            <span className="text-[10px] font-mono-numbers px-2 py-0.5 rounded bg-[#1f2834] text-[#fa9549] font-semibold border border-[#2e3b4d]">
+              v{APP_VERSION}
+            </span>
           </div>
           <button
             onClick={onClose}
@@ -163,6 +167,36 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               </div>
             </div>
           )}
+        </div>
+
+        {/* Legal Disclaimer & Links */}
+        <div className="pt-3 border-t border-[#242c36] space-y-2 font-mono-numbers text-[11px] text-slate-400">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-white font-semibold">ClickFactory v{APP_VERSION}</span>
+            <div className="flex items-center gap-3">
+              <a
+                href="https://aethercowboy.github.io/ClickFactory"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#fa9549] hover:underline flex items-center gap-1"
+              >
+                <span>Live Project</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+              <a
+                href="https://github.com/aethercowboy/ClickFactory"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-slate-400 hover:text-white hover:underline flex items-center gap-1"
+              >
+                <span>GitHub</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+          </div>
+          <p className="text-[10px] text-slate-500 leading-relaxed bg-[#0b0e12] p-2.5 rounded-lg border border-[#1b222c]">
+            <strong>Disclaimer:</strong> This is an unofficial, non-commercial fan game inspired by Satisfactory. It is in no way associated with, affiliated with, endorsed by, or sponsored by Coffee Stain Studios or Embracer Group. All Satisfactory trademarks, names, and assets references belong solely to Coffee Stain Studios.
+          </p>
         </div>
       </div>
     </div>

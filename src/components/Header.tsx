@@ -14,6 +14,7 @@ import {
   Lock,
 } from 'lucide-react';
 import { isFeatureUnlocked } from '../utils/progression';
+import { APP_VERSION } from '../version';
 
 interface HeaderProps {
   gameState: GameSaveData;
@@ -115,11 +116,16 @@ export const Header: React.FC<HeaderProps> = ({
             F
           </div>
           <div className="flex flex-col">
-            <span className="font-industrial text-xl tracking-wider text-white whitespace-nowrap">
-              FICSIT PIONEER
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="font-industrial text-xl tracking-wider text-white whitespace-nowrap">
+                CLICKFACTORY
+              </span>
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#1b232c] text-[#fa9549] border border-[#2b3542]">
+                v{APP_VERSION}
+              </span>
+            </div>
             <span className="text-[10px] text-[#8e9ca8] font-mono-numbers tracking-widest uppercase">
-              Sector MASSAGE-2(A-B)b
+              FICSIT Pioneer Automation
             </span>
           </div>
         </div>
@@ -275,6 +281,14 @@ export const Header: React.FC<HeaderProps> = ({
                 <span>MAM Researching...</span>
               </div>
             )}
+
+            {/* Fan project disclaimer badge */}
+            <span
+              title="ClickFactory is an unofficial fan game. Not affiliated with Satisfactory or Coffee Stain Studios."
+              className="hidden xl:inline-block text-[10px] text-slate-500 font-mono-numbers px-2 py-0.5 rounded bg-[#101419] border border-[#1d2530]"
+            >
+              Satisfactory Fan Game
+            </span>
           </div>
 
           {/* Utilities: Audio toggles and Settings */}

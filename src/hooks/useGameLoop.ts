@@ -131,6 +131,65 @@ export function useGameLoop() {
     return success;
   }, []);
 
+  // Start Proportional Manual Crafting with Interruptibility
+  const startCrafting = useCallback((recipeId: string, amount: number = 1) => {
+    const recipe = ALL_RECIPES.find(r => r.id === recipeId);
+    if (!recipe || amount <= 0) return false;
+
+    let success = false;
+    setGameState(prev => {
+      let maxAffordable = Infinity;
+      for (const input of recipe.inputs) {
+        const available = prev.inventory[input.itemId] || 0;
+        const count = Math.floor(available / input.amount);
+        if (count < maxAffordable) maxAffordable = count;
+      }
+      const toCraft = Math.min(amount, maxAffordable);
+      if (toCraft <= 0) return prev;
+
+      let batchDuration = recipe.craftTime || 2;
+      if (prev.completedMAMNodes.includes('mam_cat_blade_runners')) {
+        batchDuration = Math.max(0.2, batchDuration / 2);
+      }
+
+      audio.playCraftPress();
+      success = true;
+
+      return {
+        ...prev,
+        activeCrafting: {
+          recipeId,
+          totalBatches: toCraft,
+          completedBatches: 0,
+          progress: 0,
+          batchDurationSeconds: batchDuration,
+        },
+      };
+    });
+
+    return success;
+  }, []);
+
+  // Cancel / Interrupt Active Manual Crafting
+  const cancelCrafting = useCallback(() => {
+    setGameState(prev => {
+      if (!prev.activeCrafting) return prev;
+      const craftRecipe = ALL_RECIPES.find(r => r.id === prev.activeCrafting?.recipeId);
+      const finished = prev.activeCrafting.completedBatches;
+
+      addNotification(
+        'Crafting Interrupted',
+        `Manual fabrication halted. Retained ${finished} finished ${craftRecipe?.name || 'items'}.`,
+        'info'
+      );
+
+      return {
+        ...prev,
+        activeCrafting: null,
+      };
+    });
+  }, [addNotification]);
+
   // Add or update machine in factory
   const buildMachine = useCallback((buildingId: string, recipeId?: string, targetOre?: ItemId) => {
     const building = ALL_BUILDINGS[buildingId];
@@ -687,6 +746,93 @@ export function useGameLoop() {
           }
         });
 
+        // 4.5 Active Pioneer Manual Crafting over time
+        let newActiveCrafting = prevState.activeCrafting || null;
+        let manualCraftsFinishedThisTick = 0;
+        let partsProducedThisTick = 0;
+
+        if (newActiveCrafting) {
+          const craftRecipe = ALL_RECIPES.find(r => r.id === newActiveCrafting!.recipeId);
+          if (!craftRecipe) {
+            newActiveCrafting = null;
+          } else {
+            let canAffordCurrent = true;
+            for (const input of craftRecipe.inputs) {
+              if ((newInv[input.itemId] || 0) < input.amount) {
+                canAffordCurrent = false;
+                break;
+              }
+            }
+
+            if (!canAffordCurrent) {
+              addNotification(
+                'Crafting Halted',
+                `Ran out of required ingredients for ${craftRecipe.name}.`,
+                'info'
+              );
+              newActiveCrafting = null;
+            } else {
+              const deltaProgress = clampedDelta / newActiveCrafting.batchDurationSeconds;
+              let currentProgress = newActiveCrafting.progress + deltaProgress;
+              let completedBatches = newActiveCrafting.completedBatches;
+
+              while (currentProgress >= 1 && completedBatches < newActiveCrafting.totalBatches) {
+                let hasIngredients = true;
+                for (const input of craftRecipe.inputs) {
+                  if ((newInv[input.itemId] || 0) < input.amount) {
+                    hasIngredients = false;
+                    break;
+                  }
+                }
+
+                if (!hasIngredients) {
+                  addNotification(
+                    'Crafting Halted',
+                    `Ran out of required ingredients for ${craftRecipe.name}.`,
+                    'info'
+                  );
+                  newActiveCrafting = null;
+                  break;
+                }
+
+                for (const input of craftRecipe.inputs) {
+                  newInv[input.itemId] = Math.max(0, (newInv[input.itemId] || 0) - input.amount);
+                  ratesConsumedRef.current[input.itemId] = (ratesConsumedRef.current[input.itemId] || 0) + input.amount;
+                }
+
+                for (const output of craftRecipe.outputs) {
+                  newInv[output.itemId] = (newInv[output.itemId] || 0) + output.amount;
+                  ratesProducedRef.current[output.itemId] = (ratesProducedRef.current[output.itemId] || 0) + output.amount;
+                  partsProducedThisTick += output.amount;
+                }
+
+                completedBatches += 1;
+                manualCraftsFinishedThisTick += 1;
+                currentProgress -= 1;
+                audio.playCraftPress();
+              }
+
+              if (newActiveCrafting) {
+                if (completedBatches >= newActiveCrafting.totalBatches) {
+                  audio.playMilestoneFanfare();
+                  addNotification(
+                    'Fabrication Complete',
+                    `Crafted ${newActiveCrafting.totalBatches}x ${craftRecipe.name}.`,
+                    'info'
+                  );
+                  newActiveCrafting = null;
+                } else {
+                  newActiveCrafting = {
+                    ...newActiveCrafting,
+                    completedBatches,
+                    progress: currentProgress,
+                  };
+                }
+              }
+            }
+          }
+        }
+
         // 5. Check MAM Active Research completion
         let newActiveResearch = prevState.activeResearch;
         let newCompletedMAM = prevState.completedMAMNodes;
@@ -753,12 +899,15 @@ export function useGameLoop() {
             isTripped,
           },
           activeResearch: newActiveResearch,
+          activeCrafting: newActiveCrafting,
           completedMAMNodes: newCompletedMAM,
           overclockCap: newOverclockCap,
           unlockedRecipes: newUnlockedRecipes,
           unlockedOres: newUnlockedOres,
           pioneerStats: {
             ...prevState.pioneerStats,
+            manualCrafts: prevState.pioneerStats.manualCrafts + manualCraftsFinishedThisTick,
+            totalPartsMade: prevState.pioneerStats.totalPartsMade + partsProducedThisTick,
             playtimeSeconds: prevState.pioneerStats.playtimeSeconds + clampedDelta,
           },
         };
@@ -783,6 +932,8 @@ export function useGameLoop() {
     productionRates,
     manualMine,
     manualCraft,
+    startCrafting,
+    cancelCrafting,
     buildMachine,
     dismantleMachine,
     setMachineOverclock,

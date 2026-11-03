@@ -15,7 +15,9 @@ import { SettingsModal } from './components/SettingsModal';
 import { audio } from './utils/audio';
 import { INITIAL_SAVE } from './utils/saveLoad';
 import { isFeatureUnlocked } from './utils/progression';
-import { AlertCircle, CheckCircle2, Rocket, Zap, X } from 'lucide-react';
+import { ALL_RECIPES } from './data/items';
+import { APP_VERSION } from './version';
+import { AlertCircle, CheckCircle2, Rocket, Zap, X, Hammer, XOctagon } from 'lucide-react';
 
 export default function App() {
   const {
@@ -25,6 +27,8 @@ export default function App() {
     productionRates,
     manualMine,
     manualCraft,
+    startCrafting,
+    cancelCrafting,
     buildMachine,
     dismantleMachine,
     setMachineOverclock,
@@ -95,6 +99,60 @@ export default function App() {
         onToggleAmbient={toggleAmbient}
       />
 
+      {/* Global Active Manual Crafting Banner */}
+      {gameState.activeCrafting && (
+        <div className="bg-[#141a23] border-b border-[#fa9549]/50 px-4 py-2.5 shadow-md">
+          <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs font-mono-numbers">
+            <div className="flex items-center gap-3">
+              <Hammer className="w-4 h-4 text-[#fa9549] animate-bounce shrink-0" />
+              <span className="font-industrial text-sm font-bold text-white tracking-wide">
+                Crafting:{' '}
+                {ALL_RECIPES.find(r => r.id === gameState.activeCrafting?.recipeId)?.name || 'Item'}
+              </span>
+              <span className="text-[#fa9549] font-semibold">
+                ({gameState.activeCrafting.completedBatches} / {gameState.activeCrafting.totalBatches})
+              </span>
+              <div className="w-24 sm:w-36 bg-[#0c1015] h-2 rounded-full overflow-hidden border border-[#2b3542] shrink-0">
+                <div
+                  className="bg-gradient-to-r from-[#fa9549] to-amber-300 h-full transition-all duration-100"
+                  style={{
+                    width: `${Math.min(
+                      100,
+                      Math.round(
+                        ((gameState.activeCrafting.completedBatches + gameState.activeCrafting.progress) /
+                          gameState.activeCrafting.totalBatches) *
+                          100
+                      )
+                    )}%`,
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className="text-slate-400 hidden sm:inline">
+                ~
+                {Math.max(
+                  0,
+                  (gameState.activeCrafting.totalBatches -
+                    gameState.activeCrafting.completedBatches -
+                    gameState.activeCrafting.progress) *
+                    gameState.activeCrafting.batchDurationSeconds
+                ).toFixed(1)}
+                s remaining
+              </span>
+              <button
+                onClick={cancelCrafting}
+                className="px-3 py-1 bg-red-600 hover:bg-red-500 text-white font-semibold rounded flex items-center gap-1.5 transition-colors cursor-pointer text-xs shadow"
+              >
+                <XOctagon className="w-3.5 h-3.5" />
+                <span>Cancel / Interrupt</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Content Workspace */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-6 py-6 space-y-6">
         {/* Factory Visualizer overview (shows on extraction, factory, stats) */}
@@ -119,6 +177,8 @@ export default function App() {
           <CraftBench
             gameState={gameState}
             onCraft={manualCraft}
+            onStartCrafting={startCrafting}
+            onCancelCrafting={cancelCrafting}
           />
         )}
 
@@ -276,6 +336,34 @@ export default function App() {
         onToggleSound={toggleSound}
         onToggleAmbient={toggleAmbient}
       />
+
+      {/* Global Footer with Version, Live Links & Legal Disclaimer */}
+      <footer className="mt-auto border-t border-[#1e252d] bg-[#0c1015] py-5 px-4 text-center text-xs text-slate-500 font-mono-numbers space-y-2">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-4 text-slate-400 text-xs">
+          <span className="font-semibold text-white">ClickFactory v{APP_VERSION}</span>
+          <span>•</span>
+          <a
+            href="https://aethercowboy.github.io/ClickFactory"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#fa9549] hover:underline"
+          >
+            Play Live (GitHub Pages)
+          </a>
+          <span>•</span>
+          <a
+            href="https://github.com/aethercowboy/ClickFactory"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-slate-400 hover:text-white hover:underline"
+          >
+            GitHub Repository
+          </a>
+        </div>
+        <p className="text-[11px] text-slate-500 max-w-2xl mx-auto leading-relaxed">
+          Disclaimer: ClickFactory is an unofficial, non-commercial fan game inspired by Satisfactory. It is in no way associated with, affiliated with, endorsed by, or sponsored by Coffee Stain Studios or Embracer Group.
+        </p>
+      </footer>
     </div>
   );
 }

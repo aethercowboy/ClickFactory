@@ -256,6 +256,14 @@ export interface HardDriveScanning {
   choices?: string[]; // 3 alternate recipes to choose from
 }
 
+export interface ActiveCrafting {
+  recipeId: string;
+  totalBatches: number;
+  completedBatches: number;
+  progress: number; // 0 to 1 for current batch progress
+  batchDurationSeconds: number; // craft time per batch in seconds
+}
+
 export interface GameNotification {
   id: string;
   title: string;
@@ -280,6 +288,7 @@ export interface GameSaveData {
   milestoneContributions: Record<string, Record<ItemId, number>>;
   completedMAMNodes: string[];
   activeResearch: ActiveResearch | null;
+  activeCrafting?: ActiveCrafting | null;
   hardDriveScanning: HardDriveScanning | null;
   completedPhases: number[];
   elevatorDeliveries: Record<number, Record<ItemId, number>>;
