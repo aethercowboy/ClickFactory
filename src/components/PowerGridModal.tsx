@@ -133,19 +133,35 @@ export const PowerGridModal: React.FC<PowerGridModalProps> = ({
             {powerGenerators.map(gen => {
               const currentGenState = gameState.generators.find(g => g.buildingId === gen.id);
               const count = currentGenState?.count || 0;
-              const totalOutput = (gen.powerGeneration || 0) * count;
 
-              // Check fuel status
-              let fuelStatusText = 'Fueled';
-              let fuelColor = 'text-emerald-400';
+              let hasFuel = true;
+              let hasWater = true;
               if (gen.fuelRequired) {
-                const hasFuel = gen.fuelRequired.fuelItems.some(
+                hasFuel = gen.fuelRequired.fuelItems.some(
                   f => (gameState.inventory[f] || 0) > 0
                 );
-                if (!hasFuel) {
-                  fuelStatusText = 'No Fuel Available';
-                  fuelColor = 'text-red-400';
+                if (gen.fuelRequired.waterPerMin) {
+                  hasWater = (gameState.inventory.water || 0) > 0;
                 }
+              }
+
+              const isOperational = count > 0 && hasFuel && hasWater && !currentGenState?.isPaused;
+              const operatingOutput = isOperational ? (gen.powerGeneration || 0) * count : 0;
+
+              let fuelStatusText = 'Operational';
+              let fuelColor = 'text-emerald-400';
+              if (count === 0) {
+                fuelStatusText = '0 Built';
+                fuelColor = 'text-slate-500';
+              } else if (!hasFuel && !hasWater) {
+                fuelStatusText = 'Missing Fuel & Water';
+                fuelColor = 'text-red-400';
+              } else if (!hasWater) {
+                fuelStatusText = 'No Water (Requires Water Extractor)';
+                fuelColor = 'text-cyan-400';
+              } else if (!hasFuel) {
+                fuelStatusText = 'No Fuel Available';
+                fuelColor = 'text-red-400';
               }
 
               return (
@@ -160,24 +176,39 @@ export const PowerGridModal: React.FC<PowerGridModalProps> = ({
                           {gen.name}
                         </h5>
                         <div className="text-[11px] text-slate-400 font-mono-numbers mt-0.5">
-                          Output: +{gen.powerGeneration} MW per unit
+                          Rating: +{gen.powerGeneration} MW per unit
                         </div>
                       </div>
 
-                      <span className="font-mono-numbers text-xs px-2 py-0.5 rounded bg-[#1f2732] text-[#fa9549] font-bold">
-                        x{count} Active
+                      <span
+                        className={`font-mono-numbers text-xs px-2 py-0.5 rounded font-bold ${
+                          isOperational
+                            ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-700/40'
+                            : count > 0
+                            ? 'bg-red-950/60 text-red-300 border border-red-700/40'
+                            : 'bg-[#1f2732] text-slate-400'
+                        }`}
+                      >
+                        {count > 0 ? (isOperational ? `x${count} Online` : `x${count} Offline`) : '0 Built'}
                       </span>
                     </div>
 
                     <div className="mt-3 flex items-center justify-between text-xs font-mono-numbers bg-[#141920] p-2 rounded">
-                      <span className="text-slate-400">Total Output:</span>
-                      <strong className="text-cyan-400">+{totalOutput} MW</strong>
+                      <span className="text-slate-400">Current Grid Contribution:</span>
+                      <strong className={isOperational ? 'text-cyan-400' : 'text-slate-500'}>
+                        +{operatingOutput} MW
+                      </strong>
                     </div>
 
                     {gen.fuelRequired && (
-                      <div className="mt-2 text-[11px] font-mono-numbers flex items-center justify-between">
-                        <span className="text-slate-500">Fuel: {gen.fuelRequired.fuelItems.map(f => ALL_ITEMS[f]?.name).join(' / ')}</span>
-                        <span className={`font-semibold ${fuelColor}`}>{fuelStatusText}</span>
+                      <div className="mt-2 space-y-1 text-[11px] font-mono-numbers">
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-500">
+                            Fuel: {gen.fuelRequired.fuelItems.map(f => ALL_ITEMS[f]?.name).join(' / ')}
+                            {gen.fuelRequired.waterPerMin ? ` + Water (${gen.fuelRequired.waterPerMin}/m)` : ''}
+                          </span>
+                          <span className={`font-semibold ${fuelColor}`}>{fuelStatusText}</span>
+                        </div>
                       </div>
                     )}
                   </div>

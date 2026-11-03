@@ -80,17 +80,9 @@ export const INITIAL_SAVE: GameSaveData = {
   unlockedOres: ['iron_ore', 'leaves'],
   unlockedRecipes: [
     'recipe_iron_ingot',
-    'recipe_iron_plate',
-    'recipe_iron_rod',
-    'recipe_screw',
-    'recipe_wire',
-    'recipe_cable',
-    'recipe_copper_sheet',
-    'recipe_concrete',
-    'recipe_biomass_leaves',
-    'recipe_reinforced_plate',
   ],
-  unlockedBuildings: ['portable_miner', 'smelter', 'constructor_machine'],
+  unlockedBuildings: [],
+  unlockedFeatures: [],
   machines: [],
   generators: [],
   powerGrid: {
@@ -135,6 +127,7 @@ export function loadGame(): GameSaveData {
       ...INITIAL_SAVE,
       ...parsed,
       inventory: { ...INITIAL_SAVE.inventory, ...parsed.inventory },
+      unlockedFeatures: parsed.unlockedFeatures || [],
       powerGrid: { ...INITIAL_SAVE.powerGrid, ...parsed.powerGrid },
       pioneerStats: { ...INITIAL_SAVE.pioneerStats, ...parsed.pioneerStats },
     };

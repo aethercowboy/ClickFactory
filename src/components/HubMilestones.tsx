@@ -13,6 +13,11 @@ import {
   Send,
 } from 'lucide-react';
 import { audio } from '../utils/audio';
+import {
+  getMaxTierAllowed,
+  isMilestoneUnlocked,
+  getMilestoneLockReason,
+} from '../utils/progression';
 
 interface HubMilestonesProps {
   gameState: GameSaveData;
@@ -37,17 +42,19 @@ export const HubMilestones: React.FC<HubMilestonesProps> = ({
     return grouped;
   }, []);
 
-  const activeMilestone = ALL_MILESTONES.find(m => m.id === gameState.currentMilestoneId) || ALL_MILESTONES[0];
+  // Maximum tier unlocked: Tier 0 initially, Tier 1-2 after Tier 0 completes, etc.
+  const maxTierAllowed = useMemo(() => getMaxTierAllowed(gameState), [gameState]);
 
-  // Maximum tier unlocked: Tier 0, Tier 1-2 unlocked, Tier 3-4 unlocked after Phase 1, Tier 5-6 after Phase 2, etc.
-  const maxTierAllowed = useMemo(() => {
-    const phases = gameState.completedPhases;
-    if (phases.includes(4)) return 9;
-    if (phases.includes(3)) return 8;
-    if (phases.includes(2)) return 6;
-    if (phases.includes(1)) return 4;
-    return 2; // Tiers 0, 1, 2 initially available
-  }, [gameState.completedPhases]);
+  const activeMilestone = useMemo(() => {
+    const current = ALL_MILESTONES.find(m => m.id === gameState.currentMilestoneId);
+    if (current && isMilestoneUnlocked(gameState, current)) return current;
+    // Fall back to first unlocked, uncompleted milestone
+    return (
+      ALL_MILESTONES.find(
+        m => !gameState.completedMilestones.includes(m.id) && isMilestoneUnlocked(gameState, m)
+      ) || ALL_MILESTONES[0]
+    );
+  }, [gameState]);
 
   return (
     <div className="space-y-6">
@@ -85,6 +92,7 @@ export const HubMilestones: React.FC<HubMilestonesProps> = ({
             <button
               key={tier}
               disabled={isLocked}
+              title={isLocked ? (maxTierAllowed === 0 ? 'Complete all Tier 0 HUB Upgrades to unlock Tier 1 & 2' : 'Requires higher Space Elevator Phase launch') : undefined}
               onClick={() => {
                 setSelectedTier(tier);
                 audio.playCraftPress();
@@ -114,13 +122,47 @@ export const HubMilestones: React.FC<HubMilestonesProps> = ({
         <div className="lg:col-span-6 space-y-3">
           {(milestonesByTier[selectedTier] || []).map(milestone => {
             const isCompleted = gameState.completedMilestones.includes(milestone.id);
-            const isActive = gameState.currentMilestoneId === milestone.id;
+            const isUnlocked = isMilestoneUnlocked(gameState, milestone);
+            const lockReason = getMilestoneLockReason(gameState, milestone);
+            const isActive = activeMilestone?.id === milestone.id;
+
+            if (!isUnlocked && !isCompleted) {
+              return (
+                <div
+                  key={milestone.id}
+                  className="bg-[#0e1216]/60 border border-[#1e252d] border-dashed rounded-xl p-4 opacity-50 cursor-not-allowed select-none"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Lock className="w-4 h-4 text-slate-500 shrink-0" />
+                        <h4 className="font-industrial text-base font-bold text-slate-400 tracking-wide">
+                          {milestone.name}
+                        </h4>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                        {milestone.description}
+                      </p>
+                    </div>
+
+                    <span className="text-[10px] font-mono-numbers px-2 py-0.5 rounded bg-[#181f27] text-slate-400 font-semibold uppercase shrink-0">
+                      Locked
+                    </span>
+                  </div>
+
+                  <div className="mt-3 pt-2.5 border-t border-[#1a2129] flex items-center gap-1.5 text-[11px] font-mono-numbers text-amber-400/90">
+                    <span className="font-semibold text-slate-400">Prerequisite:</span>
+                    <span>{lockReason}</span>
+                  </div>
+                </div>
+              );
+            }
 
             return (
               <div
                 key={milestone.id}
                 onClick={() => {
-                  if (!isCompleted) {
+                  if (!isCompleted && isUnlocked) {
                     onSelectMilestone(milestone.id);
                     audio.playCraftPress();
                   }

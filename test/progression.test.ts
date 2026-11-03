@@ -2,7 +2,75 @@ import { ALL_MILESTONES } from '../src/data/milestones';
 import { ALL_RECIPES, ALL_BUILDINGS, ALL_ITEMS } from '../src/data/items';
 import { SPACE_ELEVATOR_PHASES } from '../src/data/spaceElevator';
 import { INITIAL_SAVE } from '../src/utils/saveLoad';
-import { ItemId } from '../src/types/game';
+import { ItemId, GameSaveData } from '../src/types/game';
+import {
+  isFeatureUnlocked,
+  getMaxTierAllowed,
+  isMilestoneUnlocked,
+} from '../src/utils/progression';
+
+// Helper to simulate power generator execution and resource consumption
+function simulateGeneratorStep(
+  generators: Array<{ buildingId: string; count: number; isPaused: boolean }>,
+  inventory: Record<ItemId, number>,
+  deltaSec: number
+): { capacity: number; inventory: Record<ItemId, number>; consumed: Partial<Record<ItemId, number>> } {
+  let powerCapacity = 0;
+  const newInv = { ...inventory };
+  const consumed: Partial<Record<ItemId, number>> = {};
+
+  generators.forEach(gen => {
+    if (gen.isPaused || gen.count <= 0) return;
+    const building = ALL_BUILDINGS[gen.buildingId];
+    if (!building || !building.powerGeneration) return;
+
+    if (!building.fuelRequired) {
+      powerCapacity += building.powerGeneration * gen.count;
+      return;
+    }
+
+    const fuelReq = building.fuelRequired;
+    const waterPerMin = fuelReq.waterPerMin || 0;
+    const waterPerSecUnit = waterPerMin / 60;
+
+    for (let unit = 0; unit < gen.count; unit++) {
+      const waterNeeded = waterPerSecUnit * deltaSec;
+      if (waterPerMin > 0 && (newInv.water || 0) < waterNeeded) {
+        continue;
+      }
+
+      let matchedFuel: ItemId | null = null;
+      let burnRatePerMin = fuelReq.burnRatePerMin;
+
+      for (const fItem of fuelReq.fuelItems) {
+        const itemBurnRate = fuelReq.fuelBurnRates?.[fItem] ?? fuelReq.burnRatePerMin;
+        const fuelNeeded = (itemBurnRate / 60) * deltaSec;
+        if ((newInv[fItem] || 0) >= fuelNeeded) {
+          matchedFuel = fItem;
+          burnRatePerMin = itemBurnRate;
+          break;
+        }
+      }
+
+      if (!matchedFuel) {
+        continue;
+      }
+
+      if (waterNeeded > 0) {
+        newInv.water = Math.max(0, (newInv.water || 0) - waterNeeded);
+        consumed.water = (consumed.water || 0) + waterNeeded;
+      }
+
+      const fuelConsumed = (burnRatePerMin / 60) * deltaSec;
+      newInv[matchedFuel] = Math.max(0, (newInv[matchedFuel] || 0) - fuelConsumed);
+      consumed[matchedFuel] = (consumed[matchedFuel] || 0) + fuelConsumed;
+
+      powerCapacity += building.powerGeneration;
+    }
+  });
+
+  return { capacity: powerCapacity, inventory: newInv, consumed };
+}
 
 // Helper to compute reachable items using transitive closure
 function computeReachableItems(
@@ -150,12 +218,187 @@ export function runProgressionTests() {
     console.log(`  ✓ Phase ${phase.phase}: "${phase.name}" components verified.`);
   }
 
+  // TEST 4: Power Generator Resource Consumption & Capacity (Issues #1 & #2)
+  console.log('\n[TEST 4] Verifying Power Generator Resource Depletion & Capacity (Issues #1 & #2)...');
+
+  // 4A. Biomass Burner with leaves
+  const simBio = simulateGeneratorStep(
+    [{ buildingId: 'biomass_burner', count: 1, isPaused: false }],
+    { ...INITIAL_SAVE.inventory, leaves: 60 },
+    10
+  );
+  if (simBio.capacity !== 30) {
+    console.error(`FAIL: Biomass burner should output 30 MW, got ${simBio.capacity} MW`);
+    failures++;
+  } else if (!simBio.consumed.leaves || simBio.consumed.leaves <= 0) {
+    console.error('FAIL: Biomass burner did not deplete leaves!');
+    failures++;
+  } else {
+    console.log(`  ✓ Biomass Burner operating: 30 MW, consumed ${simBio.consumed.leaves.toFixed(2)} leaves in 10s.`);
+  }
+
+  // 4B. Coal Generator with Coal AND Water
+  const simCoalFull = simulateGeneratorStep(
+    [{ buildingId: 'coal_generator', count: 1, isPaused: false }],
+    { ...INITIAL_SAVE.inventory, coal: 50, water: 50 },
+    10
+  );
+  if (simCoalFull.capacity !== 75) {
+    console.error(`FAIL: Coal generator with fuel & water should output 75 MW, got ${simCoalFull.capacity} MW`);
+    failures++;
+  } else if (!simCoalFull.consumed.coal || !simCoalFull.consumed.water) {
+    console.error('FAIL: Coal generator did not consume coal and water!');
+    failures++;
+  } else {
+    console.log(`  ✓ Coal Generator fueled & watered: +75 MW, consumed ${simCoalFull.consumed.coal.toFixed(2)} coal and ${simCoalFull.consumed.water.toFixed(2)} water.`);
+  }
+
+  // 4C. Coal Generator with Coal but NO Water
+  const simCoalNoWater = simulateGeneratorStep(
+    [{ buildingId: 'coal_generator', count: 1, isPaused: false }],
+    { ...INITIAL_SAVE.inventory, coal: 50, water: 0 },
+    10
+  );
+  if (simCoalNoWater.capacity !== 0) {
+    console.error(`FAIL: Coal generator without water must output 0 MW, got ${simCoalNoWater.capacity} MW`);
+    failures++;
+  } else if (simCoalNoWater.consumed.coal || simCoalNoWater.consumed.water) {
+    console.error('FAIL: Coal generator should not consume coal or water when water is missing!');
+    failures++;
+  } else {
+    console.log('  ✓ Coal Generator without water: 0 MW output, 0 resources consumed.');
+  }
+
+  // 4D. Coal Generator with Water but NO Coal
+  const simCoalNoCoal = simulateGeneratorStep(
+    [{ buildingId: 'coal_generator', count: 1, isPaused: false }],
+    { ...INITIAL_SAVE.inventory, coal: 0, water: 50 },
+    10
+  );
+  if (simCoalNoCoal.capacity !== 0) {
+    console.error(`FAIL: Coal generator without coal must output 0 MW, got ${simCoalNoCoal.capacity} MW`);
+    failures++;
+  } else {
+    console.log('  ✓ Coal Generator without coal: 0 MW output, 0 resources consumed.');
+  }
+
+  // TEST 5: Feature Gating & Future Milestones Lock (Issue #3)
+  console.log('\n[TEST 5] Verifying Feature Unlock Preconditions & Milestone Gating (Issue #3)...');
+
+  // 5A. Initial state checks
+  if (isFeatureUnlocked(INITIAL_SAVE, 'mam_research')) {
+    console.error('FAIL: MAM Research should be locked in initial save!');
+    failures++;
+  }
+  if (isFeatureUnlocked(INITIAL_SAVE, 'awesome_sink')) {
+    console.error('FAIL: AWESOME Sink should be locked in initial save!');
+    failures++;
+  }
+  if (isFeatureUnlocked(INITIAL_SAVE, 'power_grid')) {
+    console.error('FAIL: Power Grid should be locked in initial save!');
+    failures++;
+  }
+  if (isFeatureUnlocked(INITIAL_SAVE, 'automation')) {
+    console.error('FAIL: Automation should be locked in initial save!');
+    failures++;
+  }
+  if (getMaxTierAllowed(INITIAL_SAVE) !== 0) {
+    console.error(`FAIL: Max tier allowed in initial save should be 0, got ${getMaxTierAllowed(INITIAL_SAVE)}`);
+    failures++;
+  }
+
+  const upgrade1 = ALL_MILESTONES.find(m => m.id === 'tier0_upgrade_1')!;
+  const upgrade2 = ALL_MILESTONES.find(m => m.id === 'tier0_upgrade_2')!;
+  const upgrade5 = ALL_MILESTONES.find(m => m.id === 'tier0_upgrade_5')!;
+  const tier1Field = ALL_MILESTONES.find(m => m.id === 'tier1_field_research')!;
+  const tier2Sink = ALL_MILESTONES.find(m => m.id === 'tier2_awesome_sink')!;
+
+  if (!isMilestoneUnlocked(INITIAL_SAVE, upgrade1)) {
+    console.error('FAIL: HUB Upgrade 1 should be unlocked in initial save!');
+    failures++;
+  }
+  if (isMilestoneUnlocked(INITIAL_SAVE, upgrade2)) {
+    console.error('FAIL: HUB Upgrade 2 should be locked until HUB Upgrade 1 is completed!');
+    failures++;
+  }
+  if (isMilestoneUnlocked(INITIAL_SAVE, tier1Field)) {
+    console.error('FAIL: Tier 1 milestones should be locked until all Tier 0 upgrades complete!');
+    failures++;
+  }
+  console.log('  ✓ Initial state features and future milestones verified locked.');
+
+  // 5B. State after completing HUB Upgrade 1
+  const stateAfterU1: GameSaveData = {
+    ...INITIAL_SAVE,
+    completedMilestones: ['tier0_upgrade_1'],
+    unlockedBuildings: ['portable_miner'],
+  };
+  if (!isFeatureUnlocked(stateAfterU1, 'automation')) {
+    console.error('FAIL: Automation should be unlocked after HUB Upgrade 1!');
+    failures++;
+  }
+  if (!isMilestoneUnlocked(stateAfterU1, upgrade2)) {
+    console.error('FAIL: HUB Upgrade 2 should be unlocked after HUB Upgrade 1!');
+    failures++;
+  }
+  console.log('  ✓ HUB Upgrade 1 completes: Automation and Upgrade 2 unlocked.');
+
+  // 5C. State after completing Tier 0
+  const stateAfterT0: GameSaveData = {
+    ...INITIAL_SAVE,
+    completedMilestones: [
+      'tier0_upgrade_1',
+      'tier0_upgrade_2',
+      'tier0_upgrade_3',
+      'tier0_upgrade_4',
+      'tier0_upgrade_5',
+    ],
+    unlockedFeatures: ['power_grid'],
+  };
+  if (!isFeatureUnlocked(stateAfterT0, 'power_grid')) {
+    console.error('FAIL: Power grid should be unlocked after HUB Upgrade 5!');
+    failures++;
+  }
+  if (getMaxTierAllowed(stateAfterT0) !== 2) {
+    console.error(`FAIL: Max tier allowed after Tier 0 should be 2, got ${getMaxTierAllowed(stateAfterT0)}`);
+    failures++;
+  }
+  if (!isMilestoneUnlocked(stateAfterT0, tier1Field)) {
+    console.error('FAIL: Tier 1 Field Research should be unlocked after Tier 0!');
+    failures++;
+  }
+  console.log('  ✓ Tier 0 completes: Power Grid and Tiers 1-2 unlocked.');
+
+  // 5D. State after Tier 1 Field Research
+  const stateAfterMAM: GameSaveData = {
+    ...stateAfterT0,
+    completedMilestones: [...stateAfterT0.completedMilestones, 'tier1_field_research'],
+    unlockedFeatures: [...stateAfterT0.unlockedFeatures, 'mam_research'],
+  };
+  if (!isFeatureUnlocked(stateAfterMAM, 'mam_research')) {
+    console.error('FAIL: MAM research should be unlocked after tier1_field_research!');
+    failures++;
+  }
+  console.log('  ✓ Field Research completes: MAM Research unlocked.');
+
+  // 5E. State after Tier 2 Resource Sink
+  const stateAfterSink: GameSaveData = {
+    ...stateAfterMAM,
+    completedMilestones: [...stateAfterMAM.completedMilestones, 'tier2_awesome_sink'],
+    unlockedFeatures: [...stateAfterMAM.unlockedFeatures, 'awesome_sink'],
+  };
+  if (!isFeatureUnlocked(stateAfterSink, 'awesome_sink')) {
+    console.error('FAIL: AWESOME Sink should be unlocked after tier2_awesome_sink!');
+    failures++;
+  }
+  console.log('  ✓ Resource Sink completes: AWESOME Sink & Shop unlocked.');
+
   console.log('\n--------------------------------------------------------------');
   if (failures > 0) {
-    console.error(`FAILED: ${failures} progression / circularity errors detected.`);
+    console.error(`FAILED: ${failures} progression / circularity / power errors detected.`);
     process.exit(1);
   } else {
-    console.log('SUCCESS: All progression milestones, recipes, and tiers verified circular-dependency free!');
+    console.log('SUCCESS: All 5 test suites passed! Power generators and feature unlocks verified.');
   }
 }
 

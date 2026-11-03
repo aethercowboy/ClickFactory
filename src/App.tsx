@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGameLoop } from './hooks/useGameLoop';
 import { Header } from './components/Header';
 import { FactoryVisualizer } from './components/FactoryVisualizer';
@@ -14,6 +14,7 @@ import { ProductionStats } from './components/ProductionStats';
 import { SettingsModal } from './components/SettingsModal';
 import { audio } from './utils/audio';
 import { INITIAL_SAVE } from './utils/saveLoad';
+import { isFeatureUnlocked } from './utils/progression';
 import { AlertCircle, CheckCircle2, Rocket, Zap, X } from 'lucide-react';
 
 export default function App() {
@@ -42,6 +43,25 @@ export default function App() {
   const [isSpaceElevatorOpen, setIsSpaceElevatorOpen] = useState<boolean>(false);
   const [isPowerGridOpen, setIsPowerGridOpen] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+
+  // Auto-redirect if player is currently on a locked tab
+  useEffect(() => {
+    if (activeTab === 'factory' && !isFeatureUnlocked(gameState, 'automation')) {
+      setActiveTab('extraction');
+    }
+    if (activeTab === 'power' && !isFeatureUnlocked(gameState, 'power_grid')) {
+      setActiveTab('extraction');
+    }
+    if (activeTab === 'mam' && !isFeatureUnlocked(gameState, 'mam_research')) {
+      setActiveTab('extraction');
+    }
+    if (activeTab === 'sink' && !isFeatureUnlocked(gameState, 'awesome_sink')) {
+      setActiveTab('extraction');
+    }
+    if (activeTab === 'stats' && !isFeatureUnlocked(gameState, 'logistics')) {
+      setActiveTab('extraction');
+    }
+  }, [activeTab, gameState]);
 
   const toggleSound = () => {
     const nextMuted = !gameState.audioMuted;

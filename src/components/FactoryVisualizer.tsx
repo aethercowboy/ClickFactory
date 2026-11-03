@@ -1,8 +1,9 @@
 import React from 'react';
 import { GameSaveData } from '../types/game';
 import { ALL_BUILDINGS } from '../data/items';
-import { Factory, Zap, Rocket, Pickaxe, Trash2, ArrowRight } from 'lucide-react';
+import { Factory, Zap, Rocket, Pickaxe, Trash2, ArrowRight, Lock } from 'lucide-react';
 import factoryLandscapeImg from '../assets/images/ficsit_factory_landscape_1793641888396.jpg';
+import { isFeatureUnlocked } from '../utils/progression';
 
 interface FactoryVisualizerProps {
   gameState: GameSaveData;
@@ -13,6 +14,8 @@ export const FactoryVisualizer: React.FC<FactoryVisualizerProps> = ({
   gameState,
   onNavigateTab,
 }) => {
+  const isAutomationUnlocked = isFeatureUnlocked(gameState, 'automation');
+  const isPowerUnlocked = isFeatureUnlocked(gameState, 'power_grid');
   const { capacity, consumption, isTripped } = gameState.powerGrid;
   const activeExtractors = gameState.machines.filter(m => {
     const b = ALL_BUILDINGS[m.buildingId];
@@ -83,39 +86,55 @@ export const FactoryVisualizer: React.FC<FactoryVisualizerProps> = ({
 
           {/* Stage 2: Processing & Smelters */}
           <button
-            onClick={() => onNavigateTab('factory')}
-            className="bg-[#0e1216]/90 border border-[#242d38] hover:border-[#fa9549] rounded-xl p-3.5 text-left transition-all group"
+            onClick={() => onNavigateTab(isAutomationUnlocked ? 'factory' : 'milestones')}
+            className={`border rounded-xl p-3.5 text-left transition-all group ${
+              isAutomationUnlocked
+                ? 'bg-[#0e1216]/90 border-[#242d38] hover:border-[#fa9549]'
+                : 'bg-[#0e1216]/50 border-[#1c222b] opacity-60'
+            }`}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] text-[#fa9549] uppercase font-bold tracking-wider">
+              <span className={`text-[10px] uppercase font-bold tracking-wider ${isAutomationUnlocked ? 'text-[#fa9549]' : 'text-slate-500'}`}>
                 02. Fabrication Matrix
               </span>
-              <Factory className="w-4 h-4 text-[#fa9549]" />
+              {isAutomationUnlocked ? (
+                <Factory className="w-4 h-4 text-[#fa9549]" />
+              ) : (
+                <Lock className="w-4 h-4 text-slate-500" />
+              )}
             </div>
-            <div className="text-sm font-industrial font-bold text-white group-hover:text-[#fa9549] transition-colors">
-              {totalProcessorsCount} Processing Units
+            <div className={`text-sm font-industrial font-bold ${isAutomationUnlocked ? 'text-white group-hover:text-[#fa9549]' : 'text-slate-400'} transition-colors`}>
+              {isAutomationUnlocked ? `${totalProcessorsCount} Processing Units` : 'Automation Locked'}
             </div>
-            <div className="text-[11px] text-slate-400 mt-1">
-              Smelters, Constructors, Assemblers
+            <div className="text-[11px] text-slate-500 mt-1">
+              {isAutomationUnlocked ? 'Smelters, Constructors, Assemblers' : 'Requires HUB Upgrade 1'}
             </div>
           </button>
 
           {/* Stage 3: Electrical Power Substation */}
           <button
-            onClick={() => onNavigateTab('power')}
-            className="bg-[#0e1216]/90 border border-[#242d38] hover:border-cyan-400 rounded-xl p-3.5 text-left transition-all group"
+            onClick={() => onNavigateTab(isPowerUnlocked ? 'power' : 'milestones')}
+            className={`border rounded-xl p-3.5 text-left transition-all group ${
+              isPowerUnlocked
+                ? 'bg-[#0e1216]/90 border-[#242d38] hover:border-cyan-400'
+                : 'bg-[#0e1216]/50 border-[#1c222b] opacity-60'
+            }`}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] text-cyan-400 uppercase font-bold tracking-wider">
+              <span className={`text-[10px] uppercase font-bold tracking-wider ${isPowerUnlocked ? 'text-cyan-400' : 'text-slate-500'}`}>
                 03. Power Substation
               </span>
-              <Zap className="w-4 h-4 text-cyan-400" />
+              {isPowerUnlocked ? (
+                <Zap className="w-4 h-4 text-cyan-400" />
+              ) : (
+                <Lock className="w-4 h-4 text-slate-500" />
+              )}
             </div>
-            <div className="text-sm font-industrial font-bold text-white group-hover:text-cyan-300 transition-colors">
-              {capacity} MW Grid Capacity
+            <div className={`text-sm font-industrial font-bold ${isPowerUnlocked ? 'text-white group-hover:text-cyan-300' : 'text-slate-400'} transition-colors`}>
+              {isPowerUnlocked ? `${capacity} MW Grid Capacity` : 'Power Grid Locked'}
             </div>
-            <div className="text-[11px] text-slate-400 mt-1">
-              {totalGeneratorsCount} Plants ({consumption} MW Load)
+            <div className="text-[11px] text-slate-500 mt-1">
+              {isPowerUnlocked ? `${totalGeneratorsCount} Plants (${consumption} MW Load)` : 'Requires HUB Upgrade 5'}
             </div>
           </button>
 

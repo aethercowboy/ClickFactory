@@ -157,6 +157,7 @@ export interface BuildingDef {
     fuelItems: ItemId[];
     burnRatePerMin: number;
     waterPerMin?: number;
+    fuelBurnRates?: Partial<Record<ItemId, number>>;
   };
   tierUnlocked: number;
   icon: string;
@@ -270,6 +271,7 @@ export interface GameSaveData {
   unlockedOres: ItemId[];
   unlockedRecipes: string[];
   unlockedBuildings: string[];
+  unlockedFeatures: string[];
   machines: FactoryMachineState[];
   generators: GeneratorState[];
   powerGrid: PowerGridState;

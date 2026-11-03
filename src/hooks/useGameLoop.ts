@@ -13,6 +13,7 @@ import { SPACE_ELEVATOR_PHASES } from '../data/spaceElevator';
 import { AWESOME_SHOP_ITEMS } from '../data/awesomeShop';
 import { loadGame, saveGame } from '../utils/saveLoad';
 import { audio } from '../utils/audio';
+import { isMilestoneUnlocked } from '../utils/progression';
 
 export interface ProductionRates {
   producedPerMin: Record<ItemId, number>;
@@ -315,14 +316,23 @@ export function useGameLoop() {
         audio.playMilestoneFanfare();
         addNotification('Milestone Reached!', `${milestone.name} completed! New technology unlocked.`, 'milestone');
 
-        // Unlock items/recipes/buildings
+        // Unlock items/recipes/buildings/features
         const newCompleted = [...prev.completedMilestones, milestone.id];
         const newUnlockedOres = [...new Set([...prev.unlockedOres, ...(milestone.unlocks.ores || [])])];
         const newUnlockedRecipes = [...new Set([...prev.unlockedRecipes, ...(milestone.unlocks.recipes || [])])];
         const newUnlockedBuildings = [...new Set([...prev.unlockedBuildings, ...(milestone.unlocks.buildings || [])])];
+        const newUnlockedFeatures = [...new Set([...(prev.unlockedFeatures || []), ...(milestone.unlocks.features || [])])];
 
-        // Find next milestone in tier or higher
-        const nextMilestone = ALL_MILESTONES.find(m => !newCompleted.includes(m.id));
+        // Find next milestone that is unlocked and not completed
+        const nextMilestone = ALL_MILESTONES.find(m => {
+          if (newCompleted.includes(m.id)) return false;
+          const tempState = {
+            ...prev,
+            completedMilestones: newCompleted,
+            unlockedFeatures: newUnlockedFeatures,
+          };
+          return isMilestoneUnlocked(tempState, m);
+        });
 
         return {
           ...prev,
@@ -332,6 +342,7 @@ export function useGameLoop() {
           unlockedOres: newUnlockedOres,
           unlockedRecipes: newUnlockedRecipes,
           unlockedBuildings: newUnlockedBuildings,
+          unlockedFeatures: newUnlockedFeatures,
           milestoneContributions: {
             ...prev.milestoneContributions,
             [milestone.id]: currentMilestoneContribs,
@@ -535,43 +546,59 @@ export function useGameLoop() {
         let powerConsumption = 0;
         let isTripped = prevState.powerGrid.isTripped;
 
-        // 1. Calculate Power Generation
+        // 1. Calculate Power Generation & Deplete Fuel/Water
         prevState.generators.forEach(gen => {
           if (gen.isPaused || gen.count <= 0) return;
           const building = ALL_BUILDINGS[gen.buildingId];
           if (!building || !building.powerGeneration) return;
 
-          let genOperating = true;
-          if (building.fuelRequired) {
-            // Check fuel consumption
-            const burnNeeded = (building.fuelRequired.burnRatePerMin / 60) * clampedDelta * gen.count;
-            // Check water if needed (e.g. coal gen, nuclear)
-            if (building.fuelRequired.waterPerMin) {
-              const waterNeeded = (building.fuelRequired.waterPerMin / 60) * clampedDelta * gen.count;
-              if ((newInv.water || 0) < waterNeeded) {
-                genOperating = false;
-              } else {
-                newInv.water -= waterNeeded;
-              }
-            }
-
-            if (genOperating) {
-              let fuelFound = false;
-              for (const fuelItem of building.fuelRequired.fuelItems) {
-                if ((newInv[fuelItem] || 0) >= burnNeeded) {
-                  newInv[fuelItem] -= burnNeeded;
-                  fuelFound = true;
-                  break;
-                }
-              }
-              if (!fuelFound) {
-                genOperating = false;
-              }
-            }
+          if (!building.fuelRequired) {
+            powerCapacity += building.powerGeneration * gen.count;
+            return;
           }
 
-          if (genOperating) {
-            powerCapacity += building.powerGeneration * gen.count;
+          const fuelReq = building.fuelRequired;
+          const waterPerMin = fuelReq.waterPerMin || 0;
+          const waterPerSecUnit = waterPerMin / 60;
+
+          // Process each generator unit individually
+          for (let unit = 0; unit < gen.count; unit++) {
+            // Check water if required
+            const waterNeeded = waterPerSecUnit * clampedDelta;
+            if (waterPerMin > 0 && (newInv.water || 0) < waterNeeded) {
+              continue; // Water missing, unit cannot operate
+            }
+
+            // Check fuel
+            let matchedFuel: ItemId | null = null;
+            let burnRatePerMin = fuelReq.burnRatePerMin;
+
+            for (const fItem of fuelReq.fuelItems) {
+              const itemBurnRate = fuelReq.fuelBurnRates?.[fItem] ?? fuelReq.burnRatePerMin;
+              const fuelNeeded = (itemBurnRate / 60) * clampedDelta;
+              if ((newInv[fItem] || 0) >= fuelNeeded) {
+                matchedFuel = fItem;
+                burnRatePerMin = itemBurnRate;
+                break;
+              }
+            }
+
+            if (!matchedFuel) {
+              continue; // Fuel missing, unit cannot operate
+            }
+
+            // Deduct water
+            if (waterNeeded > 0) {
+              newInv.water = Math.max(0, (newInv.water || 0) - waterNeeded);
+              ratesConsumedRef.current.water = (ratesConsumedRef.current.water || 0) + waterNeeded;
+            }
+
+            // Deduct fuel
+            const fuelConsumed = (burnRatePerMin / 60) * clampedDelta;
+            newInv[matchedFuel] = Math.max(0, (newInv[matchedFuel] || 0) - fuelConsumed);
+            ratesConsumedRef.current[matchedFuel] = (ratesConsumedRef.current[matchedFuel] || 0) + fuelConsumed;
+
+            powerCapacity += building.powerGeneration;
           }
         });
 

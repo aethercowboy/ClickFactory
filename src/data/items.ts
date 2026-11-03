@@ -1570,6 +1570,11 @@ export const ALL_BUILDINGS: Record<string, BuildingDef> = {
     fuelRequired: {
       fuelItems: ['solid_biofuel', 'biomass', 'leaves'],
       burnRatePerMin: 6, // units per min
+      fuelBurnRates: {
+        solid_biofuel: 6,
+        biomass: 20,
+        leaves: 60,
+      },
     },
     tierUnlocked: 0,
     icon: 'Zap',
@@ -1612,6 +1617,10 @@ export const ALL_BUILDINGS: Record<string, BuildingDef> = {
     fuelRequired: {
       fuelItems: ['turbofuel', 'fuel'],
       burnRatePerMin: 12,
+      fuelBurnRates: {
+        turbofuel: 4.5,
+        fuel: 12,
+      },
     },
     tierUnlocked: 6,
     icon: 'Zap',

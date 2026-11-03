@@ -61,6 +61,14 @@ const MINING_NODES: MiningNodeConfig[] = [
     particleColor: '#71717a',
   },
   {
+    id: 'water',
+    name: 'Water Reservoir',
+    purity: 'Pure',
+    icon: 'Droplet',
+    gradient: 'from-cyan-900/40 to-blue-950/70 border-cyan-600/50',
+    particleColor: '#38bdf8',
+  },
+  {
     id: 'caterium_ore',
     name: 'Caterium Gold Node',
     purity: 'Pure',
@@ -246,27 +254,51 @@ export const ExtractionPanel: React.FC<ExtractionPanelProps> = ({
                 </button>
 
                 {/* Quick Deploy Stationed Extractor */}
-                {gameState.unlockedBuildings.includes('portable_miner') && (
-                  <div className="flex items-center gap-1.5 pt-1">
-                    <button
-                      onClick={() => onBuildMachine('portable_miner', undefined, node.id)}
-                      className="flex-1 py-1.5 px-2 bg-[#0d1014] hover:bg-[#1a212b] border border-[#242d38] text-[11px] font-mono-numbers text-slate-300 rounded hover:text-white transition-colors flex items-center justify-center gap-1"
-                    >
-                      <Plus className="w-3 h-3 text-[#fa9549]" />
-                      <span>Portable Miner</span>
-                    </button>
-
-                    {gameState.unlockedBuildings.includes('miner_mk1') && (
+                <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                  {node.id === 'water' ? (
+                    gameState.unlockedBuildings.includes('water_extractor') ? (
                       <button
-                        onClick={() => onBuildMachine('miner_mk1', undefined, node.id)}
+                        onClick={() => onBuildMachine('water_extractor', undefined, node.id)}
+                        className="flex-1 py-1.5 px-2 bg-[#0d1014] hover:bg-[#1a212b] border border-cyan-800/60 text-[11px] font-mono-numbers text-cyan-200 rounded hover:text-white transition-colors flex items-center justify-center gap-1"
+                      >
+                        <Plus className="w-3 h-3 text-cyan-400" />
+                        <span>Water Extractor</span>
+                      </button>
+                    ) : null
+                  ) : node.id === 'crude_oil' ? (
+                    gameState.unlockedBuildings.includes('oil_extractor') ? (
+                      <button
+                        onClick={() => onBuildMachine('oil_extractor', undefined, node.id)}
                         className="flex-1 py-1.5 px-2 bg-[#0d1014] hover:bg-[#1a212b] border border-[#242d38] text-[11px] font-mono-numbers text-slate-300 rounded hover:text-white transition-colors flex items-center justify-center gap-1"
                       >
                         <Plus className="w-3 h-3 text-[#fa9549]" />
-                        <span>Miner Mk.1</span>
+                        <span>Oil Extractor</span>
                       </button>
-                    )}
-                  </div>
-                )}
+                    ) : null
+                  ) : (
+                    <>
+                      {gameState.unlockedBuildings.includes('portable_miner') && (
+                        <button
+                          onClick={() => onBuildMachine('portable_miner', undefined, node.id)}
+                          className="flex-1 py-1.5 px-2 bg-[#0d1014] hover:bg-[#1a212b] border border-[#242d38] text-[11px] font-mono-numbers text-slate-300 rounded hover:text-white transition-colors flex items-center justify-center gap-1"
+                        >
+                          <Plus className="w-3 h-3 text-[#fa9549]" />
+                          <span>Portable Miner</span>
+                        </button>
+                      )}
+
+                      {gameState.unlockedBuildings.includes('miner_mk1') && (
+                        <button
+                          onClick={() => onBuildMachine('miner_mk1', undefined, node.id)}
+                          className="flex-1 py-1.5 px-2 bg-[#0d1014] hover:bg-[#1a212b] border border-[#242d38] text-[11px] font-mono-numbers text-slate-300 rounded hover:text-white transition-colors flex items-center justify-center gap-1"
+                        >
+                          <Plus className="w-3 h-3 text-[#fa9549]" />
+                          <span>Miner Mk.1</span>
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           );
