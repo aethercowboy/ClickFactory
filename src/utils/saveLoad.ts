@@ -105,6 +105,7 @@ export const INITIAL_SAVE: GameSaveData = {
   ficsitCoupons: 0,
   totalCouponsPrinted: 0,
   shopPurchases: [],
+  unlockedAchievements: [],
   overclockCap: 1.0,
   pioneerStats: {
     manualClicks: 0,
@@ -129,6 +130,7 @@ export function loadGame(): GameSaveData {
       ...parsed,
       inventory: { ...INITIAL_SAVE.inventory, ...parsed.inventory },
       unlockedFeatures: parsed.unlockedFeatures || [],
+      unlockedAchievements: parsed.unlockedAchievements || [],
       activeCrafting: parsed.activeCrafting || null,
       powerGrid: { ...INITIAL_SAVE.powerGrid, ...parsed.powerGrid },
       pioneerStats: { ...INITIAL_SAVE.pioneerStats, ...parsed.pioneerStats },

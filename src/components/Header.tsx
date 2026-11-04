@@ -12,6 +12,7 @@ import {
   Settings,
   AlertTriangle,
   Lock,
+  Trophy,
 } from 'lucide-react';
 import { isFeatureUnlocked } from '../utils/progression';
 import { APP_VERSION } from '../version';
@@ -23,6 +24,9 @@ interface HeaderProps {
   onOpenSpaceElevator: () => void;
   onOpenPowerGrid: () => void;
   onOpenSettings: () => void;
+  onOpenAchievements: () => void;
+  onToggleBoombox: () => void;
+  isBoomboxOpen?: boolean;
   onToggleSound: () => void;
   onToggleAmbient: () => void;
 }
@@ -34,6 +38,9 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenSpaceElevator,
   onOpenPowerGrid,
   onOpenSettings,
+  onOpenAchievements,
+  onToggleBoombox,
+  isBoomboxOpen,
   onToggleSound,
   onToggleAmbient,
 }) => {
@@ -274,6 +281,16 @@ export const Header: React.FC<HeaderProps> = ({
               <span>{gameState.ficsitCoupons} Coupons</span>
             </div>
 
+            {/* FICSIT Pioneer Accolades / Achievements */}
+            <button
+              onClick={onOpenAchievements}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#18202a] hover:bg-[#222c3a] border border-[#263445] text-amber-300 hover:text-amber-200 transition-colors text-xs font-mono-numbers"
+              title="Open FICSIT Pioneer Accolades & Achievements"
+            >
+              <Trophy className="w-3.5 h-3.5 text-[#fa9549]" />
+              <span>Accolades: <strong className="text-white">{(gameState.unlockedAchievements || []).length}</strong>/14</span>
+            </button>
+
             {/* Active MAM Research badge */}
             {gameState.activeResearch && (
               <div className="hidden sm:flex items-center gap-1.5 text-cyan-400 animate-pulse">
@@ -291,8 +308,24 @@ export const Header: React.FC<HeaderProps> = ({
             </span>
           </div>
 
-          {/* Utilities: Audio toggles and Settings */}
+          {/* Utilities: Audio toggles, Boombox, and Settings */}
           <div className="flex items-center gap-2">
+            {/* Boombox player button (when unlocked) */}
+            {gameState.shopPurchases.includes('shop_boombox') && (
+              <button
+                onClick={onToggleBoombox}
+                title={isBoomboxOpen ? 'Close Boombox Deck' : 'Open FICSIT Factory Boombox'}
+                className={`px-2.5 py-1 rounded transition-colors flex items-center gap-1.5 text-xs font-mono-numbers ${
+                  isBoomboxOpen
+                    ? 'bg-[#fa9549] text-black font-bold shadow-md'
+                    : 'bg-[#19222c] text-[#fa9549] hover:bg-[#232f3d] border border-[#fa9549]/40'
+                }`}
+              >
+                <Radio className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline font-bold">Boombox</span>
+              </button>
+            )}
+
             <button
               onClick={onToggleSound}
               title={gameState.audioMuted ? 'Unmute Sound FX' : 'Mute Sound FX'}

@@ -4,4 +4,4 @@
  * Always bump this version when adding enhancements or bugfixes.
  * See AGENTS.md for detailed versioning guidelines.
  */
-export const APP_VERSION = '0.3.0';
+export const APP_VERSION = '0.4.0';

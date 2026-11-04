@@ -268,7 +268,7 @@ export interface GameNotification {
   id: string;
   title: string;
   message: string;
-  type: 'milestone' | 'power_trip' | 'elevator' | 'research' | 'sink' | 'info';
+  type: 'milestone' | 'power_trip' | 'elevator' | 'research' | 'sink' | 'info' | 'achievement';
   timestamp: number;
 }
 
@@ -296,6 +296,7 @@ export interface GameSaveData {
   ficsitCoupons: number;
   totalCouponsPrinted: number;
   shopPurchases: string[];
+  unlockedAchievements?: string[];
   overclockCap: number; // default 1.0 (100%), can go to 2.5
   pioneerStats: {
     manualClicks: number;

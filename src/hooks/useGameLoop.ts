@@ -14,6 +14,8 @@ import { AWESOME_SHOP_ITEMS } from '../data/awesomeShop';
 import { loadGame, saveGame } from '../utils/saveLoad';
 import { audio } from '../utils/audio';
 import { isMilestoneUnlocked } from '../utils/progression';
+import { ACHIEVEMENTS, AchievementDef } from '../data/achievements';
+import { fireAchievementConfetti } from '../utils/confetti';
 
 export interface ProductionRates {
   producedPerMin: Record<ItemId, number>;
@@ -916,6 +918,42 @@ export function useGameLoop() {
 
     return () => clearInterval(interval);
   }, [addNotification]);
+
+  // Achievement unlock detection & reward dispatch
+  useEffect(() => {
+    const currentUnlocked = gameState.unlockedAchievements || [];
+    const newlyUnlocked: AchievementDef[] = [];
+
+    ACHIEVEMENTS.forEach(ach => {
+      if (!currentUnlocked.includes(ach.id)) {
+        if (ach.check(gameState)) {
+          newlyUnlocked.push(ach);
+        }
+      }
+    });
+
+    if (newlyUnlocked.length > 0) {
+      const ids = newlyUnlocked.map(a => a.id);
+      let bonusCoupons = 0;
+      newlyUnlocked.forEach(ach => {
+        bonusCoupons += ach.rewardCoupons || 0;
+        addNotification(
+          `Achievement: ${ach.title}`,
+          `${ach.description}${ach.rewardCoupons ? ` (+${ach.rewardCoupons} Coupon${ach.rewardCoupons > 1 ? 's' : ''})` : ''}`,
+          'achievement'
+        );
+      });
+
+      audio.playAchievementFanfare();
+      fireAchievementConfetti();
+
+      setGameState(prev => ({
+        ...prev,
+        ficsitCoupons: prev.ficsitCoupons + bonusCoupons,
+        unlockedAchievements: [...(prev.unlockedAchievements || []), ...ids],
+      }));
+    }
+  }, [gameState, addNotification]);
 
   // Periodic LocalStorage auto-save every 5 seconds
   useEffect(() => {

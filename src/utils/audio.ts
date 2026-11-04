@@ -264,6 +264,34 @@ class AudioManager {
     });
   }
 
+  // Achievement unlock sparkling fanfare
+  public playAchievementFanfare() {
+    if (this.isMuted) return;
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    // Triumphant corporate jingle: C5 -> E5 -> G5 -> B5 -> C6 -> E6
+    const freqs = [523.25, 659.25, 783.99, 987.77, 1046.5, 1318.51];
+    freqs.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const startT = now + idx * 0.08;
+
+      osc.type = idx % 2 === 0 ? 'sine' : 'triangle';
+      osc.frequency.value = freq;
+
+      gain.gain.setValueAtTime(0.18, startT);
+      gain.gain.exponentialRampToValueAtTime(0.001, startT + (idx === freqs.length - 1 ? 0.9 : 0.45));
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(startT);
+      osc.stop(startT + (idx === freqs.length - 1 ? 0.95 : 0.5));
+    });
+  }
+
   // Toggle ambient industrial synth drone
   public toggleAmbientMusic(enable: boolean) {
     const ctx = this.getContext();
@@ -301,6 +329,251 @@ class AudioManager {
       });
     } catch (_) {}
   }
+
+  // =========================================================================
+  // FICSIT BOOMBOX CASSETTE PLAYER (Web Audio Procedural Music Synthesizer)
+  // =========================================================================
+  private boomboxTimer: any = null;
+  private isBoomboxRunning: boolean = false;
+  private currentTrackId: string = 'synthwave';
+  private boomboxGain: GainNode | null = null;
+  private boomboxStep: number = 0;
+  private boomboxVolume: number = 0.22;
+  private boomboxListeners: Set<() => void> = new Set();
+
+  public getBoomboxTracks() {
+    return [
+      {
+        id: 'synthwave',
+        title: 'MASSAGE-2(A-B)b Synthwave',
+        genre: '80s Electro Synth',
+        bpm: 120,
+        description: 'Bouncy bassline with shimmering arpeggiated leads for factory cruising.',
+      },
+      {
+        id: 'conveyor_boogie',
+        title: 'Conveyor Belt Boogie',
+        genre: 'Industrial Funk',
+        bpm: 126,
+        description: 'Upbeat rhythm with punchy staccato bass and energetic high ticks.',
+      },
+      {
+        id: 'deep_space',
+        title: 'Deep Space Elevator',
+        genre: 'Ambient Sci-Fi',
+        bpm: 90,
+        description: 'Ethereal sub-bass and celestial bells echoing up the space elevator tether.',
+      },
+      {
+        id: 'pioneer_lofi',
+        title: 'Pioneer Lo-Fi Chill',
+        genre: 'Lo-Fi Chillout',
+        bpm: 96,
+        description: 'Relaxing mellow chords with warm analog filters to wind down the shift.',
+      },
+    ];
+  }
+
+  public subscribeBoombox(listener: () => void): () => void {
+    this.boomboxListeners.add(listener);
+    return () => {
+      this.boomboxListeners.delete(listener);
+    };
+  }
+
+  private notifyBoombox() {
+    this.boomboxListeners.forEach(cb => cb());
+  }
+
+  public isBoomboxPlaying(): boolean {
+    return this.isBoomboxRunning;
+  }
+
+  public getCurrentBoomboxTrack(): string {
+    return this.currentTrackId;
+  }
+
+  public getBoomboxVolume(): number {
+    return this.boomboxVolume;
+  }
+
+  public setBoomboxVolume(val: number) {
+    this.boomboxVolume = Math.max(0, Math.min(1, val));
+    if (this.boomboxGain && this.ctx) {
+      this.boomboxGain.gain.setValueAtTime(this.isMuted ? 0 : this.boomboxVolume, this.ctx.currentTime);
+    }
+    this.notifyBoombox();
+  }
+
+  public playBoombox(trackId?: string) {
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    if (trackId && trackId !== this.currentTrackId) {
+      this.currentTrackId = trackId;
+      this.boomboxStep = 0;
+    }
+
+    if (!this.boomboxGain) {
+      this.boomboxGain = ctx.createGain();
+      this.boomboxGain.gain.setValueAtTime(this.isMuted ? 0 : this.boomboxVolume, ctx.currentTime);
+      this.boomboxGain.connect(ctx.destination);
+    }
+
+    if (this.isBoomboxRunning) {
+      this.notifyBoombox();
+      return;
+    }
+
+    this.isBoomboxRunning = true;
+    this.notifyBoombox();
+
+    const bpm = this.getBoomboxTracks().find(t => t.id === this.currentTrackId)?.bpm || 120;
+    const stepIntervalMs = (60 / bpm / 4) * 1000; // 16th notes
+
+    const tick = () => {
+      if (!this.isBoomboxRunning) return;
+      this.renderBoomboxStep(this.boomboxStep, this.currentTrackId);
+      this.boomboxStep = (this.boomboxStep + 1) % 64; // 4-bar loop of 16 steps
+      this.boomboxTimer = setTimeout(tick, stepIntervalMs);
+    };
+
+    tick();
+  }
+
+  public stopBoombox() {
+    this.isBoomboxRunning = false;
+    if (this.boomboxTimer) {
+      clearTimeout(this.boomboxTimer);
+      this.boomboxTimer = null;
+    }
+    this.notifyBoombox();
+  }
+
+  public toggleBoombox(trackId?: string) {
+    if (this.isBoomboxRunning && (!trackId || trackId === this.currentTrackId)) {
+      this.stopBoombox();
+    } else {
+      this.playBoombox(trackId || this.currentTrackId);
+    }
+  }
+
+  // Procedural step sequencer per track
+  private renderBoomboxStep(step: number, trackId: string) {
+    const ctx = this.getContext();
+    if (!ctx || this.isMuted || !this.boomboxGain) return;
+    const now = ctx.currentTime;
+
+    // Helper: synth note
+    const playNote = (freq: number, dur: number, type: OscillatorType, gainAmt: number) => {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, now);
+
+      g.gain.setValueAtTime(gainAmt, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+      osc.connect(g);
+      g.connect(this.boomboxGain!);
+
+      osc.start(now);
+      osc.stop(now + dur + 0.05);
+    };
+
+    // Helper: drum pulse / hi-hat
+    const playTick = (isSnare: boolean) => {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = isSnare ? 'triangle' : 'sine';
+      osc.frequency.setValueAtTime(isSnare ? 220 : 600, now);
+      osc.frequency.exponentialRampToValueAtTime(40, now + (isSnare ? 0.08 : 0.03));
+
+      g.gain.setValueAtTime(isSnare ? 0.08 : 0.025, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + (isSnare ? 0.08 : 0.03));
+
+      osc.connect(g);
+      g.connect(this.boomboxGain!);
+
+      osc.start(now);
+      osc.stop(now + 0.1);
+    };
+
+    if (trackId === 'synthwave') {
+      // 120 BPM Synthwave: D minor (D, F, G, A, C)
+      const bassNotes = [146.83, 146.83, 174.61, 146.83, 196.0, 146.83, 220.0, 196.0]; // D3, F3, G3, A3
+      const arpNotes = [293.66, 349.23, 440.0, 523.25, 587.33, 523.25, 440.0, 349.23];
+
+      // Bassline on 8th notes
+      if (step % 2 === 0) {
+        const bFreq = bassNotes[(Math.floor(step / 2)) % bassNotes.length];
+        playNote(bFreq, 0.14, 'sawtooth', 0.12);
+      }
+
+      // Melody arp on 16th notes
+      if (step % 2 === 1) {
+        const mFreq = arpNotes[step % arpNotes.length];
+        playNote(mFreq, 0.12, 'square', 0.04);
+      }
+
+      // Beat: Kick on 0, 8; Snare on 4, 12; Hi-hat on every 2
+      const stepInBar = step % 16;
+      if (stepInBar === 0 || stepInBar === 8) {
+        playTick(false);
+      } else if (stepInBar === 4 || stepInBar === 12) {
+        playTick(true);
+      } else if (stepInBar % 2 === 0) {
+        playTick(false);
+      }
+    } else if (trackId === 'conveyor_boogie') {
+      // 126 BPM Conveyor Belt Boogie: Funk in F (F2, G#2, Bb2, C3)
+      const fBass = [87.31, 87.31, 103.83, 116.54, 130.81, 116.54, 103.83, 87.31];
+      if (step % 2 === 0) {
+        const freq = fBass[(Math.floor(step / 2)) % fBass.length];
+        playNote(freq, 0.1, 'triangle', 0.2);
+      }
+      if (step % 4 === 2) {
+        playNote(349.23, 0.08, 'sawtooth', 0.05); // High F4 stab
+      }
+      if (step % 4 === 0) {
+        playTick(false);
+      } else if (step % 8 === 4) {
+        playTick(true);
+      }
+    } else if (trackId === 'deep_space') {
+      // 90 BPM Space Elevator: Atmospheric A minor ambient chords
+      const padChords = [
+        [220.0, 261.63, 329.63], // Am
+        [174.61, 220.0, 261.63], // Fmaj
+        [196.0, 246.94, 293.66], // Gmaj
+        [164.81, 196.0, 246.94], // Em
+      ];
+      if (step % 16 === 0) {
+        const chordIdx = Math.floor(step / 16) % padChords.length;
+        padChords[chordIdx].forEach(f => {
+          playNote(f, 1.8, 'sine', 0.06);
+        });
+      }
+      // Sparkling bell chimes
+      if (step % 8 === 4) {
+        const bells = [880.0, 1046.5, 1318.51, 1567.98];
+        const bellFreq = bells[(step / 8) % bells.length];
+        playNote(bellFreq, 0.7, 'triangle', 0.04);
+      }
+    } else if (trackId === 'pioneer_lofi') {
+      // 96 BPM Pioneer Lo-Fi: Mellow Eb major / C minor pentatonic
+      const lofiNotes = [311.13, 392.0, 466.16, 523.25, 622.25];
+      if (step % 4 === 0) {
+        const note = lofiNotes[(step / 4) % lofiNotes.length];
+        playNote(note, 0.4, 'sine', 0.09);
+        playNote(note / 2, 0.45, 'triangle', 0.1);
+      }
+      if (step % 8 === 4) {
+        playTick(true); // Soft snare
+      }
+    }
+  }
 }
 
 export const audio = new AudioManager();
+

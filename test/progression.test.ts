@@ -9,6 +9,8 @@ import {
   isMilestoneUnlocked,
 } from '../src/utils/progression';
 import { APP_VERSION } from '../src/version';
+import { ACHIEVEMENTS } from '../src/data/achievements';
+import { audio } from '../src/utils/audio';
 import fs from 'fs';
 
 // Helper to simulate power generator execution and resource consumption
@@ -467,14 +469,73 @@ export function runProgressionTests() {
   }
   console.log(`  ✓ SemVer consistency verified: ClickFactory v${APP_VERSION} matches across package.json and src/version.ts.`);
 
+  // =========================================================================
+  // TEST 7: Achievements System & Boombox Verification
+  // =========================================================================
+  console.log('\n[TEST 7] Verifying Achievements System and Boombox Tracks...');
+
+  // 7A. Verify required achievements exist
+  const firstAuto = ACHIEVEMENTS.find(a => a.id === 'first_automation');
+  const iron1000 = ACHIEVEMENTS.find(a => a.id === 'iron_1000');
+  const powerTrip = ACHIEVEMENTS.find(a => a.id === 'power_trip');
+
+  if (!firstAuto || !iron1000 || !powerTrip) {
+    console.error('FAIL: Missing required achievements (First Automation, 1000 Iron Ingots, or Power Trip)!');
+    failures++;
+  } else {
+    console.log('  ✓ Core required achievements present (First Automation, 1000 Iron Ingots, Power Trip).');
+  }
+
+  // 7B. Test achievement evaluation with dummy states
+  const testState: GameSaveData = {
+    ...INITIAL_SAVE,
+    inventory: { ...INITIAL_SAVE.inventory, iron_ingot: 1200 },
+    machines: [
+      {
+        id: 'miner_1',
+        buildingId: 'miner_mk1',
+        count: 1,
+        clockSpeed: 1.0,
+        powerShards: 0,
+        isPaused: false,
+      },
+    ],
+    powerGrid: { ...INITIAL_SAVE.powerGrid, isTripped: true },
+    pioneerStats: { ...INITIAL_SAVE.pioneerStats, powerTripsCount: 1 },
+  };
+
+  if (!firstAuto?.check(testState)) {
+    console.error('FAIL: first_automation should trigger when machine count > 0!');
+    failures++;
+  }
+  if (!iron1000?.check(testState)) {
+    console.error('FAIL: iron_1000 should trigger when iron_ingot >= 1000!');
+    failures++;
+  }
+  if (!powerTrip?.check(testState)) {
+    console.error('FAIL: power_trip should trigger when powerGrid.isTripped is true!');
+    failures++;
+  }
+  console.log('  ✓ Achievement predicate validation verified on test game state.');
+
+  // 7C. Verify Boombox Cassette Tracks
+  const tracks = audio.getBoomboxTracks();
+  if (!tracks || tracks.length < 3) {
+    console.error(`FAIL: Expected at least 3 boombox tracks, found ${tracks?.length}`);
+    failures++;
+  } else {
+    console.log(`  ✓ Boombox procedural tracks verified (${tracks.length} tracks available: ${tracks.map(t => t.title).join(', ')}).`);
+  }
+
   console.log('\n--------------------------------------------------------------');
   if (failures > 0) {
-    console.error(`FAILED: ${failures} progression / circularity / power / craft errors detected.`);
+    console.error(`FAILED: ${failures} progression / circularity / power / craft / achievement errors detected.`);
     process.exit(1);
   } else {
-    console.log('SUCCESS: All 6 test suites passed! Power generators, progression, craft times, and versioning verified.');
+    console.log('SUCCESS: All 7 test suites passed! Power generators, progression, craft times, achievements, and versioning verified.');
   }
 }
 
 // Execute when run via tsx
 runProgressionTests();
+

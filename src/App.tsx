@@ -12,12 +12,14 @@ import { MAMResearch } from './components/MAMResearch';
 import { AwesomeSink } from './components/AwesomeSink';
 import { ProductionStats } from './components/ProductionStats';
 import { SettingsModal } from './components/SettingsModal';
+import { AchievementsModal } from './components/AchievementsModal';
+import { BoomboxWidget } from './components/BoomboxWidget';
 import { audio } from './utils/audio';
 import { INITIAL_SAVE } from './utils/saveLoad';
 import { isFeatureUnlocked } from './utils/progression';
 import { ALL_RECIPES } from './data/items';
 import { APP_VERSION } from './version';
-import { AlertCircle, CheckCircle2, Rocket, Zap, X, Hammer, XOctagon } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Rocket, Zap, X, Hammer, XOctagon, Trophy } from 'lucide-react';
 
 export default function App() {
   const {
@@ -47,6 +49,8 @@ export default function App() {
   const [isSpaceElevatorOpen, setIsSpaceElevatorOpen] = useState<boolean>(false);
   const [isPowerGridOpen, setIsPowerGridOpen] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [isAchievementsOpen, setIsAchievementsOpen] = useState<boolean>(false);
+  const [isBoomboxOpen, setIsBoomboxOpen] = useState<boolean>(false);
 
   // Auto-redirect if player is currently on a locked tab
   useEffect(() => {
@@ -95,6 +99,9 @@ export default function App() {
         onOpenSpaceElevator={() => setIsSpaceElevatorOpen(true)}
         onOpenPowerGrid={() => setIsPowerGridOpen(true)}
         onOpenSettings={() => setIsSettingsOpen(true)}
+        onOpenAchievements={() => setIsAchievementsOpen(true)}
+        onToggleBoombox={() => setIsBoomboxOpen(prev => !prev)}
+        isBoomboxOpen={isBoomboxOpen}
         onToggleSound={toggleSound}
         onToggleAmbient={toggleAmbient}
       />
@@ -270,6 +277,8 @@ export default function App() {
             className={`pointer-events-auto p-3.5 rounded-xl border shadow-xl flex items-start justify-between gap-3 backdrop-blur-md font-mono-numbers text-xs transition-all animate-in fade-in slide-in-from-bottom-2 ${
               notif.type === 'power_trip'
                 ? 'bg-red-950/90 border-red-500 text-red-200'
+                : notif.type === 'achievement'
+                ? 'bg-[#1b160e]/95 border-amber-400 text-amber-200 shadow-[0_0_25px_rgba(250,149,73,0.35)] ring-1 ring-amber-400/50'
                 : notif.type === 'milestone' || notif.type === 'elevator'
                 ? 'bg-amber-950/90 border-[#fa9549] text-amber-200'
                 : notif.type === 'research'
@@ -281,6 +290,8 @@ export default function App() {
               <div className="pt-0.5 shrink-0">
                 {notif.type === 'power_trip' ? (
                   <AlertCircle className="w-4 h-4 text-red-400" />
+                ) : notif.type === 'achievement' ? (
+                  <Trophy className="w-4 h-4 text-amber-400 animate-pulse" />
                 ) : notif.type === 'elevator' ? (
                   <Rocket className="w-4 h-4 text-[#fa9549]" />
                 ) : (
@@ -288,7 +299,7 @@ export default function App() {
                 )}
               </div>
               <div>
-                <div className="font-bold font-industrial tracking-wide text-white">
+                <div className="font-bold font-industrial tracking-wide text-white flex items-center gap-1.5">
                   {notif.title}
                 </div>
                 <div className="text-[11px] opacity-90 mt-0.5 leading-snug">
@@ -335,6 +346,20 @@ export default function App() {
         onReset={handleResetGame}
         onToggleSound={toggleSound}
         onToggleAmbient={toggleAmbient}
+      />
+
+      {/* FICSIT Pioneer Accolades / Achievements Modal */}
+      <AchievementsModal
+        gameState={gameState}
+        isOpen={isAchievementsOpen}
+        onClose={() => setIsAchievementsOpen(false)}
+      />
+
+      {/* FICSIT Factory Boombox Widget */}
+      <BoomboxWidget
+        gameState={gameState}
+        isOpen={isBoomboxOpen}
+        onClose={() => setIsBoomboxOpen(false)}
       />
 
       {/* Global Footer with Version, Live Links & Legal Disclaimer */}

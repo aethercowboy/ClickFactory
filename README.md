@@ -1,7 +1,7 @@
 # ClickFactory (FICSIT Pioneer: Factory Automation)
 
 [![Play Live](https://img.shields.io/badge/Play%20Live-aethercowboy.github.io%2FClickFactory-orange?style=for-the-badge&logo=google-chrome&logoColor=white)](https://aethercowboy.github.io/ClickFactory)
-[![Version](https://img.shields.io/badge/version-0.3.0-blue?style=for-the-badge)](./package.json)
+[![Version](https://img.shields.io/badge/version-0.4.0-blue?style=for-the-badge)](./package.json)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green?style=for-the-badge)](./LICENSE)
 
 Play the live game directly in your browser:  
@@ -62,8 +62,25 @@ Extract raw planetary ores, machine foundational plates and rods, establish auto
   - *Hard Drives*: Crash site analysis unlocking alternate recipes (e.g., Cast Screws directly from Iron Ingots)
 - **AWESOME Sink & AWESOME Shop**: Shred overflow materials into points to print corporate FICSIT Coupons and purchase permanent upgrades and monuments.
 
-### 5. Procedural Audio & Logistics Telemetry
+### 5. Pioneer Accolades (Achievement System)
+- **Comprehensive Milestone Tracking**: Tracks industrial achievements across automation, production volume, power grid management, and exploration:
+  - *First Automation*: Construct first extractor or production building
+  - *1000 Iron Ingots*: Stockpile massive ingot reserves
+  - *Power Trip*: Experience an electrical breaker overload
+  - *Maximum Throughput*: Overclock a machine to 250% using 3 Power Shards
+  - *Speed Demon*: Research and equip Blade Runners in the MAM
+  - *Orbital Lift-Off*: Complete Space Elevator Phase 1
+  - *FICSIT Pioneer Legend*: Acquire the solid gold 24k Nut Trophy
+- **Celebratory Real-Time Toasts**: Sparkling corporate fanfare jingle, celebratory confetti burst, and animated toast notifications with bonus FICSIT coupon grants upon completion.
+- **Accolades Command Ledger**: Dedicated modal with category tabs (All, Automation, Production, Power, Progression, Special), completion percentage bar, and live progress counters.
+
+### 6. FICSIT Factory Boombox & Procedural Audio
 - **Web Audio API Sound Engine**: Zero-asset procedural synthesis for mining clinks, pneumatic presses, breaker arcs, launch thrusters, and ticket chimes, plus a toggleable ambient industrial synth drone.
+- **Interactive Factory Boombox**: Unlocked via the AWESOME Shop (`FICSIT Factory Boombox`), featuring a retro cassette deck UI with dual spinning reels, VU meter equalizer, tape library tray, volume slider, and 4 procedural synthwave tracks:
+  1. *MASSAGE-2(A-B)b Synthwave* (120 BPM): Bouncy 80s bassline with shimmering arpeggiated leads.
+  2. *Conveyor Belt Boogie* (126 BPM): High-energy industrial electro-funk rhythm.
+  3. *Deep Space Elevator* (90 BPM): Atmospheric sci-fi ambient chords and space bells.
+  4. *Pioneer Lo-Fi Chill* (96 BPM): Warm pentatonic chords with relaxed analog beat.
 - **Logistics Balance Monitor**: Live items/minute production and consumption rates with automatic deficit detection to identify bottlenecks.
 - **Persistence**: Automatic LocalStorage saving every 5 seconds, offline progress simulation, and full JSON save export/import.
 
@@ -127,11 +144,27 @@ npm test
 
 ---
 
+## Changelog
+
+### v0.4.0
+- **Pioneer Accolades (Achievement System)**: Added 14 tracked achievements with real-time detection, animated toast notifications, celebratory confetti, corporate fanfare audio, coupon rewards, and dedicated Ledger UI modal with filter tabs.
+- **FICSIT Factory Boombox**: Integrated retro cassette player widget with dual spinning tape reels, track sequencer, volume slider, and 4 procedural Web Audio synth tracks (*MASSAGE-2(A-B)b Synthwave*, *Conveyor Belt Boogie*, *Deep Space Elevator*, *Pioneer Lo-Fi Chill*).
+- **Header Accolades & Boombox Controls**: Added quick metrics counter button and Boombox dock trigger.
+- **Automated Verification**: Added Test Suite 7 verifying achievement predicates and boombox tracks.
+
+### v0.3.0
+- **Proportional Craft Times & Queue Interruption**: Manual crafting time scales with recipe `craftTime`, with Blade Runners speed multiplier and queue interruption support.
+- **Power Grid Resource Depletion**: Generators actively deplete fuel and water per operational unit.
+- **Progression Prerequisites & Circularity Tests**: Added prerequisite checks in `progression.ts` and automated validation suite.
+- **Live Deployment & Legal Notice**: Published live on GitHub Pages with official legal disclaimer.
+
+---
+
 ## Versioning & Agent Instructions
 
 This project adheres strictly to [Semantic Versioning (SemVer)](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
-- Current Version: **v0.3.0** (displayed in `package.json`, `src/version.ts`, top navigation bar, and settings modal).
+- Current Version: **v0.4.0** (displayed in `package.json`, `src/version.ts`, top navigation bar, and settings modal).
 - When submitting features, enhancements, or bugfixes, see [AGENTS.md](./AGENTS.md) for required version bump procedures and testing rules.
 
 ---
