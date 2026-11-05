@@ -13,9 +13,11 @@ import {
   AlertTriangle,
   Lock,
   Trophy,
+  Compass,
 } from 'lucide-react';
 import { isFeatureUnlocked } from '../utils/progression';
 import { APP_VERSION } from '../version';
+import { getBiomeDef } from '../data/biomes';
 
 interface HeaderProps {
   gameState: GameSaveData;
@@ -25,6 +27,7 @@ interface HeaderProps {
   onOpenPowerGrid: () => void;
   onOpenSettings: () => void;
   onOpenAchievements: () => void;
+  onOpenBiomePicker?: () => void;
   onToggleBoombox: () => void;
   isBoomboxOpen?: boolean;
   onToggleSound: () => void;
@@ -39,11 +42,13 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenPowerGrid,
   onOpenSettings,
   onOpenAchievements,
+  onOpenBiomePicker,
   onToggleBoombox,
   isBoomboxOpen,
   onToggleSound,
   onToggleAmbient,
 }) => {
+  const currentBiome = getBiomeDef(gameState.selectedBiome);
   const currentPhaseNum = gameState.completedPhases.length + 1;
   const currentPhase = SPACE_ELEVATOR_PHASES.find(p => p.phase === currentPhaseNum);
 
@@ -290,6 +295,23 @@ export const Header: React.FC<HeaderProps> = ({
               <Trophy className="w-3.5 h-3.5 text-[#fa9549]" />
               <span>Accolades: <strong className="text-white">{(gameState.unlockedAchievements || []).length}</strong>/14</span>
             </button>
+
+            {/* Biome Sector / Theme Switcher */}
+            {onOpenBiomePicker && (
+              <button
+                onClick={onOpenBiomePicker}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#18202a] hover:bg-[#222c3a] border transition-colors text-xs font-mono-numbers"
+                style={{
+                  color: currentBiome.accentColor,
+                  borderColor: `${currentBiome.accentColor}50`,
+                }}
+                title={`Current Planetary Sector: ${currentBiome.name}. Click to switch biome.`}
+              >
+                <Compass className="w-3.5 h-3.5" />
+                <span className="hidden lg:inline text-slate-400">Biome:</span>
+                <strong className="text-white">{currentBiome.name}</strong>
+              </button>
+            )}
 
             {/* Active MAM Research badge */}
             {gameState.activeResearch && (

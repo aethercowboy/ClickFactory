@@ -1,7 +1,7 @@
 # ClickFactory (FICSIT Pioneer: Factory Automation)
 
 [![Play Live](https://img.shields.io/badge/Play%20Live-aethercowboy.github.io%2FClickFactory-orange?style=for-the-badge&logo=google-chrome&logoColor=white)](https://aethercowboy.github.io/ClickFactory)
-[![Version](https://img.shields.io/badge/version-0.4.0-blue?style=for-the-badge)](./package.json)
+[![Version](https://img.shields.io/badge/version-0.5.0-blue?style=for-the-badge)](./package.json)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green?style=for-the-badge)](./LICENSE)
 
 Play the live game directly in your browser:  
@@ -84,6 +84,16 @@ Extract raw planetary ores, machine foundational plates and rods, establish auto
 - **Logistics Balance Monitor**: Live items/minute production and consumption rates with automatic deficit detection to identify bottlenecks.
 - **Persistence**: Automatic LocalStorage saving every 5 seconds, offline progress simulation, and full JSON save export/import.
 
+### 7. Planetary Biome Sectors (Theme Switcher)
+- **5 Iconic Planetary Sectors**: Transform your factory environment across the iconic starting biomes of MASSAGE-2(A-B)b:
+  - *Grass Fields (Sector 01)*: Verdant emerald meadows, rich flora density, gentle rolling savannah, and warm sunlight ambiance.
+  - *Rocky Desert (Sector 02)*: High-contrast amber sandstone canyons, elevated plateaus, and dry desert drone harmonics.
+  - *Northern Forest (Sector 03)*: Mist-shrouded alpine spruce valleys, cool teal atmosphere, pure mountain quartz veins, and ethereal high-altitude tones.
+  - *Dune Desert (Sector 04)*: Immense copper-orange dunes, blazing desert sun, heat mirage horizons, and open mega-factory topography.
+  - *Titan Forest (Sector 05)*: Primeval alien biosphere crowned with giant bioluminescent mushroom spires, violet mycelium glow, and exotic SAM/Uranium nodes.
+- **Dynamic Factory Horizon & Lighting**: Each biome dynamically adjusts sky gradients, backdrop lighting, environmental trait notes, and Web Audio synthesizer drone chords.
+- **Seamless Sector Deployment**: Switch biomes at any time via the Header Biome badge, the Factory Flow Map sector button, or the Settings modal with instant, zero-progress-loss deployment.
+
 ---
 
 ## Tech Stack
@@ -146,6 +156,13 @@ npm test
 
 ## Changelog
 
+### v0.5.0
+- **Planetary Biome Sectors (Theme Switcher)**: Added 5 authentic Satisfactory biomes on MASSAGE-2(A-B)b (*Grass Fields*, *Rocky Desert*, *Northern Forest*, *Dune Desert*, *Titan Forest*).
+- **Dynamic Visual Atmosphere**: Each biome transforms the factory skyline canvas, backdrop lighting gradient, environmental traits notes, and color accents.
+- **Atmospheric Web Audio Integration**: Biome transitions trigger pneumatic deployment audio and smoothly retune ambient synth drone chords.
+- **Multi-Point Theme Controls**: Change sectors via the Header Biome badge, Factory Flow Map trigger, or the Settings modal.
+- **Automated Verification**: Added Test Suite 8 verifying all 5 biome definitions, default fallbacks, and SemVer 0.5.0 consistency.
+
 ### v0.4.0
 - **Pioneer Accolades (Achievement System)**: Added 14 tracked achievements with real-time detection, animated toast notifications, celebratory confetti, corporate fanfare audio, coupon rewards, and dedicated Ledger UI modal with filter tabs.
 - **FICSIT Factory Boombox**: Integrated retro cassette player widget with dual spinning tape reels, track sequencer, volume slider, and 4 procedural Web Audio synth tracks (*MASSAGE-2(A-B)b Synthwave*, *Conveyor Belt Boogie*, *Deep Space Elevator*, *Pioneer Lo-Fi Chill*).
@@ -164,7 +181,7 @@ npm test
 
 This project adheres strictly to [Semantic Versioning (SemVer)](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
-- Current Version: **v0.4.0** (displayed in `package.json`, `src/version.ts`, top navigation bar, and settings modal).
+- Current Version: **v0.5.0** (displayed in `package.json`, `src/version.ts`, top navigation bar, and settings modal).
 - When submitting features, enhancements, or bugfixes, see [AGENTS.md](./AGENTS.md) for required version bump procedures and testing rules.
 
 ---

@@ -14,11 +14,13 @@ import { ProductionStats } from './components/ProductionStats';
 import { SettingsModal } from './components/SettingsModal';
 import { AchievementsModal } from './components/AchievementsModal';
 import { BoomboxWidget } from './components/BoomboxWidget';
+import { BiomePickerModal } from './components/BiomePickerModal';
 import { audio } from './utils/audio';
 import { INITIAL_SAVE } from './utils/saveLoad';
 import { isFeatureUnlocked } from './utils/progression';
 import { ALL_RECIPES } from './data/items';
 import { APP_VERSION } from './version';
+import { getBiomeDef } from './data/biomes';
 import { AlertCircle, CheckCircle2, Rocket, Zap, X, Hammer, XOctagon, Trophy } from 'lucide-react';
 
 export default function App() {
@@ -41,6 +43,7 @@ export default function App() {
     startMAMResearch,
     sinkItem,
     buyShopItem,
+    selectBiome,
     addNotification,
     dismissNotification,
   } = useGameLoop();
@@ -51,6 +54,9 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isAchievementsOpen, setIsAchievementsOpen] = useState<boolean>(false);
   const [isBoomboxOpen, setIsBoomboxOpen] = useState<boolean>(false);
+  const [isBiomePickerOpen, setIsBiomePickerOpen] = useState<boolean>(false);
+
+  const currentBiome = getBiomeDef(gameState.selectedBiome);
 
   // Auto-redirect if player is currently on a locked tab
   useEffect(() => {
@@ -90,7 +96,14 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0e1217] text-[#e1e7ed] flex flex-col font-sans selection:bg-[#fa9549] selection:text-black">
+    <div
+      data-biome={currentBiome.id}
+      className="min-h-screen text-[#e1e7ed] flex flex-col font-sans selection:bg-[#fa9549] selection:text-black transition-colors duration-700 relative"
+      style={{
+        backgroundColor: '#0c1015',
+        backgroundImage: `radial-gradient(ellipse 80% 50% at 50% -10%, ${currentBiome.accentColor}12, transparent)`,
+      }}
+    >
       {/* Top Bar Navigation */}
       <Header
         gameState={gameState}
@@ -100,6 +113,7 @@ export default function App() {
         onOpenPowerGrid={() => setIsPowerGridOpen(true)}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onOpenAchievements={() => setIsAchievementsOpen(true)}
+        onOpenBiomePicker={() => setIsBiomePickerOpen(true)}
         onToggleBoombox={() => setIsBoomboxOpen(prev => !prev)}
         isBoomboxOpen={isBoomboxOpen}
         onToggleSound={toggleSound}
@@ -167,6 +181,7 @@ export default function App() {
           <FactoryVisualizer
             gameState={gameState}
             onNavigateTab={tab => setActiveTab(tab)}
+            onOpenBiomePicker={() => setIsBiomePickerOpen(true)}
           />
         )}
 
@@ -346,6 +361,7 @@ export default function App() {
         onReset={handleResetGame}
         onToggleSound={toggleSound}
         onToggleAmbient={toggleAmbient}
+        onSelectBiome={selectBiome}
       />
 
       {/* FICSIT Pioneer Accolades / Achievements Modal */}
@@ -360,6 +376,14 @@ export default function App() {
         gameState={gameState}
         isOpen={isBoomboxOpen}
         onClose={() => setIsBoomboxOpen(false)}
+      />
+
+      {/* FICSIT Planetary Biome Sector Theme Picker Modal */}
+      <BiomePickerModal
+        isOpen={isBiomePickerOpen}
+        onClose={() => setIsBiomePickerOpen(false)}
+        currentBiomeId={gameState.selectedBiome || 'grass_fields'}
+        onSelectBiome={selectBiome}
       />
 
       {/* Global Footer with Version, Live Links & Legal Disclaimer */}

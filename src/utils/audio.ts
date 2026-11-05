@@ -292,8 +292,48 @@ class AudioManager {
     });
   }
 
-  // Toggle ambient industrial synth drone
-  public toggleAmbientMusic(enable: boolean) {
+  // Biome deployment pneumatic sound
+  public playBiomeSwitch() {
+    if (this.isMuted) return;
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    // Sub bass deployment thud
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(220, now);
+    osc.frequency.exponentialRampToValueAtTime(45, now + 0.3);
+
+    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.38);
+
+    // High sweep frequency
+    const sweep = ctx.createOscillator();
+    const sGain = ctx.createGain();
+    sweep.type = 'triangle';
+    sweep.frequency.setValueAtTime(350, now + 0.05);
+    sweep.frequency.exponentialRampToValueAtTime(700, now + 0.28);
+    sGain.gain.setValueAtTime(0.001, now);
+    sGain.gain.setValueAtTime(0.1, now + 0.05);
+    sGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+    sweep.connect(sGain);
+    sGain.connect(ctx.destination);
+    sweep.start(now + 0.05);
+    sweep.stop(now + 0.38);
+  }
+
+  // Toggle ambient industrial synth drone with biome-specific chords
+  public toggleAmbientMusic(enable: boolean, customChords?: number[]) {
     const ctx = this.getContext();
     if (!ctx) return;
 
@@ -309,11 +349,16 @@ class AudioManager {
       return;
     }
 
-    if (this.isAmbientPlaying) return;
+    if (this.isAmbientPlaying) {
+      if (customChords) {
+        this.updateAmbientChords(customChords);
+      }
+      return;
+    }
     this.isAmbientPlaying = true;
 
     try {
-      const chords = [130.81, 196.0, 261.63]; // C3, G3, C4
+      const chords = customChords || [130.81, 196.0, 261.63]; // Default Grass Fields
       const masterGain = ctx.createGain();
       masterGain.gain.setValueAtTime(this.isMuted ? 0 : 0.03, ctx.currentTime);
       masterGain.connect(ctx.destination);
@@ -328,6 +373,21 @@ class AudioManager {
         return osc;
       });
     } catch (_) {}
+  }
+
+  // Live-transition ambient drone frequencies when switching biomes
+  public updateAmbientChords(chords: number[]) {
+    if (!this.isAmbientPlaying || !this.ctx) return;
+    const now = this.ctx.currentTime;
+    chords.forEach((freq, idx) => {
+      if (this.ambientOscillators[idx]) {
+        try {
+          this.ambientOscillators[idx].frequency.exponentialRampToValueAtTime(freq, now + 1.2);
+        } catch (_) {
+          this.ambientOscillators[idx].frequency.setValueAtTime(freq, now);
+        }
+      }
+    });
   }
 
   // =========================================================================

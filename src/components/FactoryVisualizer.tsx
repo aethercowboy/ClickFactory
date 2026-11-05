@@ -1,19 +1,33 @@
 import React from 'react';
 import { GameSaveData } from '../types/game';
 import { ALL_BUILDINGS } from '../data/items';
-import { Factory, Zap, Rocket, Pickaxe, Trash2, ArrowRight, Lock } from 'lucide-react';
+import { Factory, Zap, Rocket, Pickaxe, Trash2, ArrowRight, Lock, Compass, Trees, Mountain, Sun, Sparkles } from 'lucide-react';
 import factoryLandscapeImg from '../assets/images/ficsit_factory_landscape_1793641888396.jpg';
 import { isFeatureUnlocked } from '../utils/progression';
+import { getBiomeDef } from '../data/biomes';
 
 interface FactoryVisualizerProps {
   gameState: GameSaveData;
   onNavigateTab: (tab: string) => void;
+  onOpenBiomePicker?: () => void;
 }
+
+const BIOME_ICONS: Record<string, React.ElementType> = {
+  Trees,
+  Mountain,
+  Compass,
+  Sun,
+  Sparkles,
+};
 
 export const FactoryVisualizer: React.FC<FactoryVisualizerProps> = ({
   gameState,
   onNavigateTab,
+  onOpenBiomePicker,
 }) => {
+  const currentBiome = getBiomeDef(gameState.selectedBiome);
+  const BiomeIconComp = BIOME_ICONS[currentBiome.icon] || Compass;
+
   const isAutomationUnlocked = isFeatureUnlocked(gameState, 'automation');
   const isPowerUnlocked = isFeatureUnlocked(gameState, 'power_grid');
   const { capacity, consumption, isTripped } = gameState.powerGrid;
@@ -31,14 +45,22 @@ export const FactoryVisualizer: React.FC<FactoryVisualizerProps> = ({
   const totalGeneratorsCount = gameState.generators.reduce((acc, g) => acc + g.count, 0);
 
   return (
-    <div className="bg-[#141920] border border-[#242c36] rounded-xl p-5 shadow-lg relative overflow-hidden">
-      {/* Visual background image with scrim */}
-      <div className="absolute inset-0 opacity-15 pointer-events-none">
+    <div
+      className="bg-[#141920] border rounded-xl p-5 shadow-lg relative overflow-hidden transition-colors duration-500"
+      style={{
+        borderColor: `${currentBiome.accentColor}30`,
+      }}
+    >
+      {/* Visual background image with biome-specific color wash & scrim */}
+      <div className="absolute inset-0 opacity-20 pointer-events-none">
         <img
           src={factoryLandscapeImg}
           alt="Factory Complex"
           className="w-full h-full object-cover object-center"
           referrerPolicy="no-referrer"
+        />
+        <div
+          className={`absolute inset-0 bg-gradient-to-t ${currentBiome.skyGradient}`}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#141920] via-transparent to-[#141920]" />
       </div>
@@ -55,11 +77,31 @@ export const FactoryVisualizer: React.FC<FactoryVisualizerProps> = ({
             </p>
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-mono-numbers">
-            <span className="text-slate-400">Grid Status:</span>
-            <span className={isTripped ? 'text-red-400 font-bold' : 'text-emerald-400 font-bold'}>
-              {isTripped ? 'OFFLINE (TRIPPED)' : 'SYNCHRONIZED (100%)'}
-            </span>
+          <div className="flex items-center gap-3 text-xs font-mono-numbers">
+            {/* Biome Sector Switcher Trigger Button */}
+            {onOpenBiomePicker && (
+              <button
+                onClick={onOpenBiomePicker}
+                title="Change Planetary Sector & Biome Theme"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-all hover:scale-[1.02]"
+                style={{
+                  backgroundColor: currentBiome.badgeBg,
+                  borderColor: currentBiome.badgeBorder,
+                  color: currentBiome.accentColor,
+                }}
+              >
+                <BiomeIconComp className="w-3.5 h-3.5" />
+                <span className="font-bold">{currentBiome.name}</span>
+                <span className="text-[10px] opacity-75">({currentBiome.sector})</span>
+              </button>
+            )}
+
+            <div className="flex items-center gap-1.5 text-slate-400">
+              <span>Grid:</span>
+              <span className={isTripped ? 'text-red-400 font-bold' : 'text-emerald-400 font-bold'}>
+                {isTripped ? 'TRIPPED' : '100%'}
+              </span>
+            </div>
           </div>
         </div>
 

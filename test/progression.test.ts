@@ -11,6 +11,7 @@ import {
 import { APP_VERSION } from '../src/version';
 import { ACHIEVEMENTS } from '../src/data/achievements';
 import { audio } from '../src/utils/audio';
+import { BIOMES, getBiomeDef, DEFAULT_BIOME_ID } from '../src/data/biomes';
 import fs from 'fs';
 
 // Helper to simulate power generator execution and resource consumption
@@ -527,12 +528,57 @@ export function runProgressionTests() {
     console.log(`  ✓ Boombox procedural tracks verified (${tracks.length} tracks available: ${tracks.map(t => t.title).join(', ')}).`);
   }
 
+  // =========================================================================
+  // TEST 8: Biomes System & Theme Switcher Verification
+  // =========================================================================
+  console.log('\n[TEST 8] Verifying Biomes System and Theme Switcher...');
+
+  const expectedBiomes = ['grass_fields', 'rocky_desert', 'northern_forest', 'dune_desert', 'titan_forest'];
+  expectedBiomes.forEach(bId => {
+    const found = BIOMES.find(b => b.id === bId);
+    if (!found) {
+      console.error(`FAIL: Missing required biome '${bId}'!`);
+      failures++;
+    } else {
+      if (!found.name || !found.sector || !found.accentColor || !found.skyGradient) {
+        console.error(`FAIL: Biome '${bId}' missing visual configuration!`);
+        failures++;
+      }
+      if (!found.ambientChords || found.ambientChords.length === 0) {
+        console.error(`FAIL: Biome '${bId}' missing ambient audio frequencies!`);
+        failures++;
+      }
+    }
+  });
+
+  // Verify default fallback
+  const fallbackBiome = getBiomeDef(undefined);
+  if (fallbackBiome.id !== DEFAULT_BIOME_ID || fallbackBiome.id !== 'grass_fields') {
+    console.error(`FAIL: Expected fallback biome to be grass_fields, got ${fallbackBiome.id}`);
+    failures++;
+  }
+
+  // Verify INITIAL_SAVE has grass_fields selected
+  if (INITIAL_SAVE.selectedBiome !== 'grass_fields') {
+    console.error(`FAIL: INITIAL_SAVE.selectedBiome must be 'grass_fields', got ${INITIAL_SAVE.selectedBiome}`);
+    failures++;
+  }
+  console.log(`  ✓ All ${BIOMES.length} planetary biomes verified with visual styles and audio chords.`);
+
+  // Verify SemVer v0.5.0
+  const curPkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+  if (curPkg.version !== '0.5.0' || APP_VERSION !== '0.5.0') {
+    console.error(`FAIL: Version must be 0.5.0! Got package.json=${curPkg.version}, APP_VERSION=${APP_VERSION}`);
+    failures++;
+  }
+  console.log(`  ✓ SemVer v0.5.0 consistency verified across package.json and src/version.ts.`);
+
   console.log('\n--------------------------------------------------------------');
   if (failures > 0) {
-    console.error(`FAILED: ${failures} progression / circularity / power / craft / achievement errors detected.`);
+    console.error(`FAILED: ${failures} progression / circularity / power / craft / achievement / biome errors detected.`);
     process.exit(1);
   } else {
-    console.log('SUCCESS: All 7 test suites passed! Power generators, progression, craft times, achievements, and versioning verified.');
+    console.log('SUCCESS: All 8 test suites passed! Power generators, progression, craft times, achievements, biomes, and versioning verified.');
   }
 }
 

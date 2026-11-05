@@ -106,6 +106,7 @@ export const INITIAL_SAVE: GameSaveData = {
   totalCouponsPrinted: 0,
   shopPurchases: [],
   unlockedAchievements: [],
+  selectedBiome: 'grass_fields',
   overclockCap: 1.0,
   pioneerStats: {
     manualClicks: 0,
@@ -131,6 +132,7 @@ export function loadGame(): GameSaveData {
       inventory: { ...INITIAL_SAVE.inventory, ...parsed.inventory },
       unlockedFeatures: parsed.unlockedFeatures || [],
       unlockedAchievements: parsed.unlockedAchievements || [],
+      selectedBiome: parsed.selectedBiome || 'grass_fields',
       activeCrafting: parsed.activeCrafting || null,
       powerGrid: { ...INITIAL_SAVE.powerGrid, ...parsed.powerGrid },
       pioneerStats: { ...INITIAL_SAVE.pioneerStats, ...parsed.pioneerStats },
@@ -166,6 +168,7 @@ export function importSave(jsonStr: string): GameSaveData | null {
       ...INITIAL_SAVE,
       ...parsed,
       inventory: { ...INITIAL_SAVE.inventory, ...parsed.inventory },
+      selectedBiome: parsed.selectedBiome || 'grass_fields',
       powerGrid: { ...INITIAL_SAVE.powerGrid, ...parsed.powerGrid },
     };
   } catch (e) {

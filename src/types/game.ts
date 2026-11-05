@@ -272,6 +272,13 @@ export interface GameNotification {
   timestamp: number;
 }
 
+export type BiomeId =
+  | 'grass_fields'
+  | 'rocky_desert'
+  | 'northern_forest'
+  | 'dune_desert'
+  | 'titan_forest';
+
 export interface GameSaveData {
   version: number;
   lastTick: number;
@@ -297,6 +304,7 @@ export interface GameSaveData {
   totalCouponsPrinted: number;
   shopPurchases: string[];
   unlockedAchievements?: string[];
+  selectedBiome?: BiomeId;
   overclockCap: number; // default 1.0 (100%), can go to 2.5
   pioneerStats: {
     manualClicks: number;

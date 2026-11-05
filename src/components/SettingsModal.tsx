@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { GameSaveData } from '../types/game';
+import { GameSaveData, BiomeId } from '../types/game';
 import { exportSave, importSave, INITIAL_SAVE } from '../utils/saveLoad';
-import { Settings, Download, Upload, RotateCcw, Volume2, VolumeX, Check, ExternalLink } from 'lucide-react';
+import { Settings, Download, Upload, RotateCcw, Volume2, VolumeX, Check, ExternalLink, Compass } from 'lucide-react';
 import { audio } from '../utils/audio';
 import { APP_VERSION } from '../version';
+import { BIOMES } from '../data/biomes';
 
 interface SettingsModalProps {
   gameState: GameSaveData;
@@ -13,6 +14,7 @@ interface SettingsModalProps {
   onReset: () => void;
   onToggleSound: () => void;
   onToggleAmbient: () => void;
+  onSelectBiome?: (biomeId: BiomeId) => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -23,6 +25,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onReset,
   onToggleSound,
   onToggleAmbient,
+  onSelectBiome,
 }) => {
   const [importText, setImportText] = useState<string>('');
   const [copied, setCopied] = useState<boolean>(false);
@@ -97,6 +100,45 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             >
               {gameState.ambientTrack ? 'Playing' : 'Off'}
             </button>
+          </div>
+        </div>
+
+        {/* Biome Environment Theme Picker */}
+        <div className="space-y-3 font-mono-numbers text-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-slate-400 font-semibold uppercase tracking-wider block">
+              Planetary Biome Theme:
+            </span>
+            <span className="text-[11px] text-slate-500">MASSAGE-2(A-B)b Sectors</span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {BIOMES.map(b => {
+              const isActive = (gameState.selectedBiome || 'grass_fields') === b.id;
+              return (
+                <button
+                  key={b.id}
+                  onClick={() => onSelectBiome?.(b.id)}
+                  className={`p-2.5 rounded-lg border text-left transition-all flex flex-col justify-between gap-1.5 ${
+                    isActive
+                      ? 'bg-[#1a2330] font-bold shadow-sm'
+                      : 'bg-[#0e1216] border-[#202732] text-slate-400 hover:text-white hover:bg-[#151c24]'
+                  }`}
+                  style={{
+                    borderColor: isActive ? b.accentColor : undefined,
+                  }}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] text-white truncate">{b.name}</span>
+                    <span
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{ backgroundColor: b.accentColor }}
+                    />
+                  </div>
+                  <span className="text-[9px] text-slate-500 truncate">{b.sector}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 

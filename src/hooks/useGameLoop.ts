@@ -5,6 +5,7 @@ import {
   FactoryMachineState,
   GeneratorState,
   GameNotification,
+  BiomeId,
 } from '../types/game';
 import { ALL_ITEMS, ALL_RECIPES, ALL_BUILDINGS } from '../data/items';
 import { ALL_MAM_NODES } from '../data/mamTrees';
@@ -16,6 +17,7 @@ import { audio } from '../utils/audio';
 import { isMilestoneUnlocked } from '../utils/progression';
 import { ACHIEVEMENTS, AchievementDef } from '../data/achievements';
 import { fireAchievementConfetti } from '../utils/confetti';
+import { getBiomeDef } from '../data/biomes';
 
 export interface ProductionRates {
   producedPerMin: Record<ItemId, number>;
@@ -592,6 +594,22 @@ export function useGameLoop() {
     return success;
   }, []);
 
+  // Biome Sector Switcher (Theme change)
+  const selectBiome = useCallback((biomeId: BiomeId) => {
+    setGameState(prev => {
+      if (prev.selectedBiome === biomeId) return prev;
+      audio.playBiomeSwitch();
+      const biome = getBiomeDef(biomeId);
+      if (prev.ambientTrack) {
+        audio.updateAmbientChords(biome.ambientChords);
+      }
+      return {
+        ...prev,
+        selectedBiome: biomeId,
+      };
+    });
+  }, []);
+
   // Main Simulation Loop running at 10Hz (100ms interval)
   useEffect(() => {
     const TICK_INTERVAL_MS = 100;
@@ -982,6 +1000,7 @@ export function useGameLoop() {
     startMAMResearch,
     sinkItem,
     buyShopItem,
+    selectBiome,
     addNotification,
     dismissNotification,
   };

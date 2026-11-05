@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { GameSaveData, ItemId } from '../types/game';
 import { ALL_ITEMS, ALL_BUILDINGS } from '../data/items';
-import { Pickaxe, Drill, Droplet, Sparkles, Plus, Check } from 'lucide-react';
+import { Pickaxe, Drill, Droplet, Sparkles, Plus, Check, Compass } from 'lucide-react';
 import { audio } from '../utils/audio';
+import { getBiomeDef } from '../data/biomes';
 
 interface ExtractionPanelProps {
   gameState: GameSaveData;
@@ -127,6 +128,8 @@ export const ExtractionPanel: React.FC<ExtractionPanelProps> = ({
   const hasBlades = gameState.completedMAMNodes.includes('mam_cat_blade_runners');
   const clickMultiplier = (hasCup ? 5 : 1) * (hasBlades ? 1.5 : 1);
 
+  const currentBiome = getBiomeDef(gameState.selectedBiome);
+
   return (
     <div className="space-y-6">
       {/* Overview & Pioneer status card */}
@@ -143,6 +146,20 @@ export const ExtractionPanel: React.FC<ExtractionPanelProps> = ({
               Survey and tap native mineral nodes across planetary sector MASSAGE-2(A-B)b.
               Click resource nodes directly to chisel by hand, or deploy automated Portable Miners and Drill Rigs to feed your processing lines.
             </p>
+            <div className="mt-2.5 flex items-center gap-2 text-xs font-mono-numbers">
+              <span
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold border"
+                style={{
+                  backgroundColor: currentBiome.badgeBg,
+                  borderColor: currentBiome.badgeBorder,
+                  color: currentBiome.accentColor,
+                }}
+              >
+                <Compass className="w-3 h-3" />
+                <span>{currentBiome.name} ({currentBiome.sector})</span>
+              </span>
+              <span className="text-slate-400 text-[11px] truncate">{currentBiome.resourceNotes}</span>
+            </div>
           </div>
 
           <div className="flex items-center gap-3 bg-[#0d1014] px-4 py-2.5 rounded-lg border border-[#202732] shrink-0 font-mono-numbers text-xs">
