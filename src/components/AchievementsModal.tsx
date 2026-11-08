@@ -22,6 +22,9 @@ import {
   Award,
   Sparkles,
   Filter,
+  Gift,
+  TreePine,
+  Star,
 } from 'lucide-react';
 
 interface AchievementsModalProps {
@@ -45,6 +48,10 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Zap,
   Shield,
   Trophy,
+  Sparkles,
+  Gift,
+  TreePine,
+  Star,
 };
 
 export const AchievementsModal: React.FC<AchievementsModalProps> = ({

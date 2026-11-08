@@ -15,9 +15,11 @@ import { SettingsModal } from './components/SettingsModal';
 import { AchievementsModal } from './components/AchievementsModal';
 import { BoomboxWidget } from './components/BoomboxWidget';
 import { BiomePickerModal } from './components/BiomePickerModal';
+import { SnowEffect } from './components/SnowEffect';
 import { audio } from './utils/audio';
 import { INITIAL_SAVE } from './utils/saveLoad';
 import { isFeatureUnlocked } from './utils/progression';
+import { isFicsmasActive } from './utils/ficsmas';
 import { ALL_RECIPES } from './data/items';
 import { APP_VERSION } from './version';
 import { getBiomeDef } from './data/biomes';
@@ -44,6 +46,7 @@ export default function App() {
     sinkItem,
     buyShopItem,
     selectBiome,
+    setFicsmasMode,
     addNotification,
     dismissNotification,
   } = useGameLoop();
@@ -104,6 +107,9 @@ export default function App() {
         backgroundImage: `radial-gradient(ellipse 80% 50% at 50% -10%, ${currentBiome.accentColor}12, transparent)`,
       }}
     >
+      {/* Falling Snowflakes Background Effect when FICSMAS is active */}
+      {isFicsmasActive(gameState) && <SnowEffect />}
+
       {/* Top Bar Navigation */}
       <Header
         gameState={gameState}
@@ -362,6 +368,7 @@ export default function App() {
         onToggleSound={toggleSound}
         onToggleAmbient={toggleAmbient}
         onSelectBiome={selectBiome}
+        onSetFicsmasMode={setFicsmasMode}
       />
 
       {/* FICSIT Pioneer Accolades / Achievements Modal */}

@@ -77,7 +77,18 @@ export type ItemId =
   // Endgame Quantum
   | 'dark_matter_residue'
   | 'time_crystal'
-  | 'singularity_cell';
+  | 'singularity_cell'
+  // FICSMAS Seasonal Holiday Items
+  | 'ficsmas_gift'
+  | 'ficsmas_tree_branch'
+  | 'ficsmas_ornament_red'
+  | 'ficsmas_ornament_blue'
+  | 'ficsmas_ornament_copper'
+  | 'ficsmas_ornament_iron'
+  | 'ficsmas_bow'
+  | 'ficsmas_candy_cane'
+  | 'ficsmas_snowball'
+  | 'ficsmas_wonder_star';
 
 export type ItemCategory =
   | 'raw'
@@ -88,6 +99,7 @@ export type ItemCategory =
   | 'project_part'
   | 'power_fuel'
   | 'alien'
+  | 'ficsmas'
   | 'special';
 
 export interface ItemDef {
@@ -207,7 +219,7 @@ export interface MilestoneDef {
 
 export interface MAMNodeDef {
   id: string;
-  tree: 'slugs' | 'caterium' | 'alien' | 'quartz' | 'hard_drives';
+  tree: 'slugs' | 'caterium' | 'alien' | 'quartz' | 'hard_drives' | 'ficsmas';
   name: string;
   description: string;
   researchDuration: number; // seconds
@@ -219,6 +231,7 @@ export interface MAMNodeDef {
     manualSpeedMultiplier?: number;
     recipes?: string[];
     ores?: ItemId[];
+    buildings?: string[];
     perkName?: string;
   };
 }
@@ -305,6 +318,8 @@ export interface GameSaveData {
   shopPurchases: string[];
   unlockedAchievements?: string[];
   selectedBiome?: BiomeId;
+  ficsmasMode?: 'auto' | 'enabled' | 'disabled';
+  ficsmasPresentsCollected?: number;
   overclockCap: number; // default 1.0 (100%), can go to 2.5
   pioneerStats: {
     manualClicks: number;

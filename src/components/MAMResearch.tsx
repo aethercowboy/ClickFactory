@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { audio } from '../utils/audio';
 
+import { isFicsmasActive } from '../utils/ficsmas';
+
 interface MAMResearchProps {
   gameState: GameSaveData;
   onStartResearch: (nodeId: string) => void;
@@ -22,15 +24,26 @@ export const MAMResearch: React.FC<MAMResearchProps> = ({
   gameState,
   onStartResearch,
 }) => {
-  const [selectedTree, setSelectedTree] = useState<'slugs' | 'caterium' | 'alien' | 'quartz' | 'hard_drives'>('slugs');
+  const [selectedTree, setSelectedTree] = useState<'slugs' | 'caterium' | 'alien' | 'quartz' | 'hard_drives' | 'ficsmas'>('slugs');
 
-  const trees = [
-    { id: 'slugs', label: 'Power Slugs (Overclocking)' },
-    { id: 'caterium', label: 'Caterium & Electronics' },
-    { id: 'alien', label: 'Alien Organisms & DNA' },
-    { id: 'quartz', label: 'Quartz & Crystals' },
-    { id: 'hard_drives', label: 'Hard Drives (Alternate Recipes)' },
-  ];
+  const ficsmasActive = isFicsmasActive(gameState);
+
+  const trees = useMemo(() => {
+    const list: Array<{
+      id: 'slugs' | 'caterium' | 'alien' | 'quartz' | 'hard_drives' | 'ficsmas';
+      label: string;
+    }> = [
+      { id: 'slugs', label: 'Power Slugs (Overclocking)' },
+      { id: 'caterium', label: 'Caterium & Electronics' },
+      { id: 'alien', label: 'Alien Organisms & DNA' },
+      { id: 'quartz', label: 'Quartz & Crystals' },
+      { id: 'hard_drives', label: 'Hard Drives (Alternate Recipes)' },
+    ];
+    if (ficsmasActive) {
+      list.push({ id: 'ficsmas', label: 'FICSMAS Holiday Event' });
+    }
+    return list;
+  }, [ficsmasActive]);
 
   const currentTreeNodes = useMemo(() => {
     return ALL_MAM_NODES.filter(n => n.tree === selectedTree);

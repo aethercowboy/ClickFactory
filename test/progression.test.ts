@@ -12,6 +12,8 @@ import { APP_VERSION } from '../src/version';
 import { ACHIEVEMENTS } from '../src/data/achievements';
 import { audio } from '../src/utils/audio';
 import { BIOMES, getBiomeDef, DEFAULT_BIOME_ID } from '../src/data/biomes';
+import { isFicsmasActive, getFicsmasStatusText } from '../src/utils/ficsmas';
+import { ALL_MAM_NODES } from '../src/data/mamTrees';
 import fs from 'fs';
 
 // Helper to simulate power generator execution and resource consumption
@@ -565,20 +567,111 @@ export function runProgressionTests() {
   }
   console.log(`  ✓ All ${BIOMES.length} planetary biomes verified with visual styles and audio chords.`);
 
-  // Verify SemVer v0.5.0
-  const curPkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-  if (curPkg.version !== '0.5.0' || APP_VERSION !== '0.5.0') {
-    console.error(`FAIL: Version must be 0.5.0! Got package.json=${curPkg.version}, APP_VERSION=${APP_VERSION}`);
+  // =========================================================================
+  // TEST 9: Seasonal FICSMAS Event Mode Verification
+  // =========================================================================
+  console.log('\n[TEST 9] Verifying Seasonal FICSMAS Event Mode & Holiday Mechanics...');
+
+  // 9A. Calendar & Mode Logic
+  const decDate = new Date(2026, 11, 15); // Dec 15, 2026
+  const julyDate = new Date(2026, 6, 4); // July 4, 2026
+
+  const autoState: GameSaveData = { ...INITIAL_SAVE, ficsmasMode: 'auto' };
+  const enabledState: GameSaveData = { ...INITIAL_SAVE, ficsmasMode: 'enabled' };
+  const disabledState: GameSaveData = { ...INITIAL_SAVE, ficsmasMode: 'disabled' };
+
+  if (!isFicsmasActive(autoState, decDate)) {
+    console.error('FAIL: isFicsmasActive should be TRUE in December when mode is auto!');
     failures++;
   }
-  console.log(`  ✓ SemVer v0.5.0 consistency verified across package.json and src/version.ts.`);
+  if (isFicsmasActive(autoState, julyDate)) {
+    console.error('FAIL: isFicsmasActive should be FALSE in July when mode is auto!');
+    failures++;
+  }
+  if (!isFicsmasActive(enabledState, julyDate)) {
+    console.error('FAIL: isFicsmasActive should be TRUE year-round when mode is enabled!');
+    failures++;
+  }
+  if (isFicsmasActive(disabledState, decDate)) {
+    console.error('FAIL: isFicsmasActive should be FALSE even in December when mode is disabled!');
+    failures++;
+  }
+  console.log('  ✓ Calendar activation and manual override controls verified.');
+
+  // 9B. Holiday Items & Building definitions
+  const requiredFicsmasItems = [
+    'ficsmas_gift',
+    'ficsmas_tree_branch',
+    'ficsmas_ornament_red',
+    'ficsmas_ornament_blue',
+    'ficsmas_ornament_copper',
+    'ficsmas_ornament_iron',
+    'ficsmas_bow',
+    'ficsmas_candy_cane',
+    'ficsmas_snowball',
+    'ficsmas_wonder_star',
+  ];
+  requiredFicsmasItems.forEach(itemId => {
+    if (!ALL_ITEMS[itemId as ItemId]) {
+      console.error(`FAIL: Missing holiday item '${itemId}' in ALL_ITEMS!`);
+      failures++;
+    }
+  });
+
+  if (!ALL_BUILDINGS.ficsmas_gift_tree) {
+    console.error("FAIL: Missing building 'ficsmas_gift_tree' in ALL_BUILDINGS!");
+    failures++;
+  }
+  console.log(`  ✓ All ${requiredFicsmasItems.length} holiday items and FICSMAS Gift Tree building verified.`);
+
+  // 9C. Holiday MAM Tech Tree
+  const ficsmasNodes = ALL_MAM_NODES.filter(n => n.tree === 'ficsmas');
+  if (ficsmasNodes.length !== 6) {
+    console.error(`FAIL: Expected 6 FICSMAS MAM research nodes, found ${ficsmasNodes.length}!`);
+    failures++;
+  } else {
+    const starNode = ficsmasNodes.find(n => n.id === 'mam_ficsmas_wonder_star');
+    if (!starNode || !starNode.unlocks.recipes?.includes('recipe_ficsmas_wonder_star')) {
+      console.error('FAIL: Wonder star node missing or does not unlock recipe_ficsmas_wonder_star!');
+      failures++;
+    }
+    console.log(`  ✓ MAM holiday tech tree verified (${ficsmasNodes.length} nodes including Wonder Star apex).`);
+  }
+
+  // 9D. Holiday Achievements
+  const holidayAchIds = ['ficsmas_first_gift', 'ficsmas_decorations', 'ficsmas_gift_tree', 'ficsmas_wonder_star'];
+  holidayAchIds.forEach(id => {
+    const found = ACHIEVEMENTS.find(a => a.id === id);
+    if (!found) {
+      console.error(`FAIL: Missing holiday achievement '${id}'!`);
+      failures++;
+    }
+  });
+  console.log(`  ✓ Holiday achievements verified (${holidayAchIds.join(', ')}).`);
+
+  // 9E. Holiday Boombox Track
+  const holidayTrack = audio.getBoomboxTracks().find(t => t.id === 'ficsmas_jingle');
+  if (!holidayTrack) {
+    console.error("FAIL: Missing boombox track 'ficsmas_jingle'!");
+    failures++;
+  } else {
+    console.log(`  ✓ Holiday cassette track verified: "${holidayTrack.title}" (${holidayTrack.bpm} BPM).`);
+  }
+
+  // Verify SemVer v0.6.1
+  const curPkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+  if (curPkg.version !== '0.6.1' || APP_VERSION !== '0.6.1') {
+    console.error(`FAIL: Version must be 0.6.1! Got package.json=${curPkg.version}, APP_VERSION=${APP_VERSION}`);
+    failures++;
+  }
+  console.log(`  ✓ SemVer v0.6.1 consistency verified across package.json and src/version.ts.`);
 
   console.log('\n--------------------------------------------------------------');
   if (failures > 0) {
-    console.error(`FAILED: ${failures} progression / circularity / power / craft / achievement / biome errors detected.`);
+    console.error(`FAILED: ${failures} progression / circularity / power / craft / achievement / biome / ficsmas errors detected.`);
     process.exit(1);
   } else {
-    console.log('SUCCESS: All 8 test suites passed! Power generators, progression, craft times, achievements, biomes, and versioning verified.');
+    console.log('SUCCESS: All 9 test suites passed! FICSMAS seasonal mode, power generators, progression, craft times, achievements, biomes, and versioning verified.');
   }
 }
 

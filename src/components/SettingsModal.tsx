@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GameSaveData, BiomeId } from '../types/game';
 import { exportSave, importSave, INITIAL_SAVE } from '../utils/saveLoad';
-import { Settings, Download, Upload, RotateCcw, Volume2, VolumeX, Check, ExternalLink, Compass } from 'lucide-react';
+import { Settings, Download, Upload, RotateCcw, Volume2, VolumeX, Check, ExternalLink, Compass, Gift, X } from 'lucide-react';
 import { audio } from '../utils/audio';
 import { APP_VERSION } from '../version';
 import { BIOMES } from '../data/biomes';
+import { isFicsmasActive, getFicsmasStatusText } from '../utils/ficsmas';
 
 interface SettingsModalProps {
   gameState: GameSaveData;
@@ -15,6 +16,7 @@ interface SettingsModalProps {
   onToggleSound: () => void;
   onToggleAmbient: () => void;
   onSelectBiome?: (biomeId: BiomeId) => void;
+  onSetFicsmasMode?: (mode: 'auto' | 'enabled' | 'disabled') => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -26,10 +28,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onToggleSound,
   onToggleAmbient,
   onSelectBiome,
+  onSetFicsmasMode,
 }) => {
   const [importText, setImportText] = useState<string>('');
   const [copied, setCopied] = useState<boolean>(false);
   const [confirmReset, setConfirmReset] = useState<boolean>(false);
+
+  // Keyboard shortcut: Press Escape to close modal
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -52,12 +67,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-[#141920] border border-[#242c36] rounded-xl max-w-lg w-full p-6 shadow-2xl space-y-6">
-        <div className="flex items-center justify-between border-b border-[#242c36] pb-3">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200"
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        className="bg-[#141920] border border-[#242c36] rounded-xl max-w-lg w-full max-h-[92vh] sm:max-h-[88vh] flex flex-col shadow-2xl overflow-hidden font-sans"
+      >
+        {/* Sticky Header: Never scrolls out of view */}
+        <div className="shrink-0 bg-[#181f28] border-b border-[#242c36] px-5 sm:px-6 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Settings className="w-5 h-5 text-[#fa9549]" />
-            <h3 className="font-industrial text-lg font-bold text-white tracking-wide">
+            <h3 className="font-industrial text-base sm:text-lg font-bold text-white tracking-wide">
               Pioneer Terminal Settings
             </h3>
             <span className="text-[10px] font-mono-numbers px-2 py-0.5 rounded bg-[#1f2834] text-[#fa9549] font-semibold border border-[#2e3b4d]">
@@ -66,11 +88,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white text-xs font-mono-numbers px-2 py-1 rounded hover:bg-[#1c232c]"
+            aria-label="Close settings modal"
+            className="px-2.5 py-1 rounded-lg text-slate-300 hover:text-white bg-[#141a22] hover:bg-[#222c3a] border border-[#2a3544] flex items-center gap-1.5 text-xs font-mono-numbers transition-colors"
           >
-            Close
+            <span>Close</span>
+            <X className="w-4 h-4 text-slate-300" />
           </button>
         </div>
+
+        {/* Scrollable Content Body */}
+        <div className="p-5 sm:p-6 overflow-y-auto space-y-6 flex-1 text-xs font-mono-numbers">
 
         {/* Audio Toggles */}
         <div className="space-y-3 font-mono-numbers text-xs">
@@ -136,6 +163,44 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     />
                   </div>
                   <span className="text-[9px] text-slate-500 truncate">{b.sector}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Seasonal FICSMAS Event Mode */}
+        <div className="space-y-3 font-mono-numbers text-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <span className="text-slate-400 font-semibold uppercase tracking-wider flex items-center gap-1.5">
+              <Gift className="w-3.5 h-3.5 text-red-400" />
+              <span>FICSMAS Seasonal Event:</span>
+            </span>
+            <span className={`text-[11px] font-semibold ${isFicsmasActive(gameState) ? 'text-red-400' : 'text-slate-500'}`}>
+              {getFicsmasStatusText(gameState)}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            {[
+              { id: 'auto', label: 'Seasonal (Dec 1-31)', desc: 'Automatic in December' },
+              { id: 'enabled', label: 'Always Active', desc: 'Force Event On' },
+              { id: 'disabled', label: 'Disabled', desc: 'Force Event Off' },
+            ].map(opt => {
+              const currentMode = gameState.ficsmasMode || 'auto';
+              const isSelected = currentMode === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  onClick={() => onSetFicsmasMode?.(opt.id as any)}
+                  className={`p-2.5 rounded-lg border text-left transition-all flex flex-col justify-between gap-1 ${
+                    isSelected
+                      ? 'bg-red-950/50 border-red-500 text-white font-bold shadow'
+                      : 'bg-[#0e1216] border-[#202732] text-slate-400 hover:text-white hover:bg-[#151c24]'
+                  }`}
+                >
+                  <span className="text-[11px] text-white font-semibold">{opt.label}</span>
+                  <span className="text-[9px] text-slate-500">{opt.desc}</span>
                 </button>
               );
             })}
@@ -241,6 +306,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </p>
         </div>
       </div>
+
+      {/* Sticky Footer: Always visible on all screen sizes */}
+      <div className="shrink-0 bg-[#101419] border-t border-[#202732] px-5 sm:px-6 py-3 flex items-center justify-between gap-3 text-xs font-mono-numbers">
+        <span className="text-slate-500 text-[11px] truncate hidden sm:inline">
+          FICSIT Pioneer OS · ClickFactory v{APP_VERSION}
+        </span>
+        <button
+          onClick={onClose}
+          className="w-full sm:w-auto px-4 py-2 rounded-lg bg-[#fa9549] hover:bg-[#fb8533] text-black font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 shadow"
+        >
+          <Check className="w-3.5 h-3.5" />
+          <span>Close Settings</span>
+        </button>
+      </div>
     </div>
-  );
+  </div>
+);
 };

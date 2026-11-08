@@ -76,6 +76,16 @@ export const INITIAL_SAVE: GameSaveData = {
     dark_matter_residue: 0,
     time_crystal: 0,
     singularity_cell: 0,
+    ficsmas_gift: 0,
+    ficsmas_tree_branch: 0,
+    ficsmas_ornament_red: 0,
+    ficsmas_ornament_blue: 0,
+    ficsmas_ornament_copper: 0,
+    ficsmas_ornament_iron: 0,
+    ficsmas_bow: 0,
+    ficsmas_candy_cane: 0,
+    ficsmas_snowball: 0,
+    ficsmas_wonder_star: 0,
   },
   unlockedOres: ['iron_ore', 'leaves'],
   unlockedRecipes: [
@@ -107,6 +117,8 @@ export const INITIAL_SAVE: GameSaveData = {
   shopPurchases: [],
   unlockedAchievements: [],
   selectedBiome: 'grass_fields',
+  ficsmasMode: 'auto',
+  ficsmasPresentsCollected: 0,
   overclockCap: 1.0,
   pioneerStats: {
     manualClicks: 0,
@@ -133,6 +145,8 @@ export function loadGame(): GameSaveData {
       unlockedFeatures: parsed.unlockedFeatures || [],
       unlockedAchievements: parsed.unlockedAchievements || [],
       selectedBiome: parsed.selectedBiome || 'grass_fields',
+      ficsmasMode: parsed.ficsmasMode || 'auto',
+      ficsmasPresentsCollected: parsed.ficsmasPresentsCollected || 0,
       activeCrafting: parsed.activeCrafting || null,
       powerGrid: { ...INITIAL_SAVE.powerGrid, ...parsed.powerGrid },
       pioneerStats: { ...INITIAL_SAVE.pioneerStats, ...parsed.pioneerStats },
@@ -169,6 +183,8 @@ export function importSave(jsonStr: string): GameSaveData | null {
       ...parsed,
       inventory: { ...INITIAL_SAVE.inventory, ...parsed.inventory },
       selectedBiome: parsed.selectedBiome || 'grass_fields',
+      ficsmasMode: parsed.ficsmasMode || 'auto',
+      ficsmasPresentsCollected: parsed.ficsmasPresentsCollected || 0,
       powerGrid: { ...INITIAL_SAVE.powerGrid, ...parsed.powerGrid },
     };
   } catch (e) {

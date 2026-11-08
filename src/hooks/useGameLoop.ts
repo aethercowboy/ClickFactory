@@ -76,7 +76,11 @@ export function useGameLoop() {
       }
 
       const added = multiplier;
-      audio.playMineClick();
+      if (oreId === 'ficsmas_gift') {
+        audio.playFicsmasBell();
+      } else {
+        audio.playMineClick();
+      }
 
       return {
         ...prev,
@@ -84,6 +88,10 @@ export function useGameLoop() {
           ...prev.inventory,
           [oreId]: (prev.inventory[oreId] || 0) + added,
         },
+        ficsmasPresentsCollected:
+          oreId === 'ficsmas_gift'
+            ? (prev.ficsmasPresentsCollected || 0) + added
+            : prev.ficsmasPresentsCollected,
         pioneerStats: {
           ...prev.pioneerStats,
           manualClicks: prev.pioneerStats.manualClicks + 1,
@@ -610,6 +618,17 @@ export function useGameLoop() {
     });
   }, []);
 
+  // Seasonal FICSMAS Mode Toggle
+  const setFicsmasMode = useCallback((mode: 'auto' | 'enabled' | 'disabled') => {
+    setGameState(prev => {
+      audio.playCraftPress();
+      return {
+        ...prev,
+        ficsmasMode: mode,
+      };
+    });
+  }, []);
+
   // Main Simulation Loop running at 10Hz (100ms interval)
   useEffect(() => {
     const TICK_INTERVAL_MS = 100;
@@ -713,14 +732,15 @@ export function useGameLoop() {
           }
 
           // Case A: Extractor / Miner
-          if (building.category === 'extractor' && machine.targetOre) {
-            const ore = machine.targetOre;
+          if (building.category === 'extractor' && (machine.targetOre || building.id === 'ficsmas_gift_tree')) {
+            const ore = (machine.targetOre || 'ficsmas_gift') as ItemId;
             let baseRate = 2; // portable miner = 2/sec
             if (building.id === 'miner_mk1') baseRate = 10;
             if (building.id === 'miner_mk2') baseRate = 30;
             if (building.id === 'miner_mk3') baseRate = 90;
             if (building.id === 'oil_extractor') baseRate = 20;
             if (building.id === 'water_extractor') baseRate = 25;
+            if (building.id === 'ficsmas_gift_tree') baseRate = 0.25; // 15 gifts/min
 
             const produced = baseRate * machine.clockSpeed * machine.count * clampedDelta;
             newInv[ore] = (newInv[ore] || 0) + produced;
@@ -859,6 +879,7 @@ export function useGameLoop() {
         let newOverclockCap = prevState.overclockCap;
         let newUnlockedRecipes = prevState.unlockedRecipes;
         let newUnlockedOres = prevState.unlockedOres;
+        let newUnlockedBuildings = prevState.unlockedBuildings;
 
         if (newActiveResearch) {
           const elapsed = now - newActiveResearch.startTime;
@@ -880,6 +901,9 @@ export function useGameLoop() {
               }
               if (node.unlocks.ores) {
                 newUnlockedOres = [...new Set([...newUnlockedOres, ...node.unlocks.ores])];
+              }
+              if (node.unlocks.buildings) {
+                newUnlockedBuildings = [...new Set([...newUnlockedBuildings, ...node.unlocks.buildings])];
               }
             }
             newActiveResearch = null;
@@ -924,6 +948,7 @@ export function useGameLoop() {
           overclockCap: newOverclockCap,
           unlockedRecipes: newUnlockedRecipes,
           unlockedOres: newUnlockedOres,
+          unlockedBuildings: newUnlockedBuildings,
           pioneerStats: {
             ...prevState.pioneerStats,
             manualCrafts: prevState.pioneerStats.manualCrafts + manualCraftsFinishedThisTick,
@@ -1001,6 +1026,7 @@ export function useGameLoop() {
     sinkItem,
     buyShopItem,
     selectBiome,
+    setFicsmasMode,
     addNotification,
     dismissNotification,
   };

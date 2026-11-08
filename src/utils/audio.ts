@@ -57,6 +57,32 @@ class AudioManager {
     osc.stop(now + 0.11);
   }
 
+  // Festive holiday sleigh bell chime
+  public playFicsmasBell() {
+    if (this.isMuted) return;
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    const freqs = [1760, 2093, 2637, 3135]; // A6, C7, E7, G7 high chime
+    freqs.forEach((f, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(f, now + i * 0.04);
+
+      gain.gain.setValueAtTime(0.08, now + i * 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.04 + 0.35);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now + i * 0.04);
+      osc.stop(now + i * 0.04 + 0.36);
+    });
+  }
+
   // Pneumatic craft press thump
   public playCraftPress() {
     if (this.isMuted) return;
@@ -431,6 +457,13 @@ class AudioManager {
         bpm: 96,
         description: 'Relaxing mellow chords with warm analog filters to wind down the shift.',
       },
+      {
+        id: 'ficsmas_jingle',
+        title: 'FICSIT Holiday Jingle Bells',
+        genre: 'Festive Industrial Synth',
+        bpm: 130,
+        description: 'Chiming bells and punchy holiday synth melody bringing corporate festive cheer.',
+      },
     ];
   }
 
@@ -630,6 +663,28 @@ class AudioManager {
       }
       if (step % 8 === 4) {
         playTick(true); // Soft snare
+      }
+    } else if (trackId === 'ficsmas_jingle') {
+      // 130 BPM FICSIT Holiday Jingle: Jingle bells melody in G/C
+      const jingleMelody = [
+        329.63, 0, 329.63, 0, 329.63, 0, 0, 0, // Jin-gle bells
+        329.63, 0, 329.63, 0, 329.63, 0, 0, 0, // Jin-gle bells
+        329.63, 0, 392.0, 0, 261.63, 0, 293.66, 0, // Jin-gle all the
+        329.63, 0, 0, 0, 0, 0, 0, 0, // way!
+      ];
+      const mIdx = step % jingleMelody.length;
+      const mFreq = jingleMelody[mIdx];
+      if (mFreq > 0) {
+        playNote(mFreq, 0.18, 'triangle', 0.12);
+        playNote(mFreq * 4, 0.08, 'sine', 0.03); // Sleigh shimmer
+      }
+      if (step % 2 === 0) {
+        playNote(2637, 0.05, 'triangle', 0.03); // E7 silver bells
+      }
+      if (step % 8 === 0) {
+        playTick(false);
+      } else if (step % 8 === 4) {
+        playTick(true);
       }
     }
   }

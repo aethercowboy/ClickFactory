@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { GameSaveData, ItemId } from '../types/game';
 import { ALL_ITEMS, ALL_BUILDINGS } from '../data/items';
-import { Pickaxe, Drill, Droplet, Sparkles, Plus, Check, Compass } from 'lucide-react';
+import { Pickaxe, Drill, Droplet, Sparkles, Plus, Check, Compass, Gift } from 'lucide-react';
 import { audio } from '../utils/audio';
 import { getBiomeDef } from '../data/biomes';
+import { isFicsmasActive } from '../utils/ficsmas';
 
 interface ExtractionPanelProps {
   gameState: GameSaveData;
@@ -111,6 +112,15 @@ const MINING_NODES: MiningNodeConfig[] = [
   },
 ];
 
+const FICSMAS_GIFT_NODE: MiningNodeConfig = {
+  id: 'ficsmas_gift',
+  name: 'Giant Orbit Gift Drop',
+  purity: 'Pure',
+  icon: 'Gift',
+  gradient: 'from-red-950/50 via-rose-950/30 to-[#141920] border-red-500/60',
+  particleColor: '#ef4444',
+};
+
 export const ExtractionPanel: React.FC<ExtractionPanelProps> = ({
   gameState,
   onMine,
@@ -129,6 +139,8 @@ export const ExtractionPanel: React.FC<ExtractionPanelProps> = ({
   const clickMultiplier = (hasCup ? 5 : 1) * (hasBlades ? 1.5 : 1);
 
   const currentBiome = getBiomeDef(gameState.selectedBiome);
+  const isHolidayActive = isFicsmasActive(gameState);
+  const activeMiningNodes = isHolidayActive ? [FICSMAS_GIFT_NODE, ...MINING_NODES] : MINING_NODES;
 
   return (
     <div className="space-y-6">
@@ -172,14 +184,14 @@ export const ExtractionPanel: React.FC<ExtractionPanelProps> = ({
 
       {/* Grid of Resource Nodes */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {MINING_NODES.map(node => {
-          const isUnlocked = gameState.unlockedOres.includes(node.id);
+        {activeMiningNodes.map(node => {
+          const isUnlocked = node.id === 'ficsmas_gift' ? true : gameState.unlockedOres.includes(node.id);
           const itemDef = ALL_ITEMS[node.id];
           const currentCount = Math.floor(gameState.inventory[node.id] || 0);
 
           // Find automated extractors stationed on this ore
           const activeDrills = gameState.machines.filter(
-            m => m.targetOre === node.id && !m.isPaused
+            m => (m.targetOre === node.id || (node.id === 'ficsmas_gift' && m.buildingId === 'ficsmas_gift_tree')) && !m.isPaused
           );
           let automatedRatePerSec = 0;
           activeDrills.forEach(d => {
@@ -191,6 +203,7 @@ export const ExtractionPanel: React.FC<ExtractionPanelProps> = ({
             if (b.id === 'miner_mk3') baseRate = 90;
             if (b.id === 'oil_extractor') baseRate = 20;
             if (b.id === 'water_extractor') baseRate = 25;
+            if (b.id === 'ficsmas_gift_tree') baseRate = 0.25;
             automatedRatePerSec += baseRate * d.clockSpeed * d.count;
           });
 
@@ -272,7 +285,21 @@ export const ExtractionPanel: React.FC<ExtractionPanelProps> = ({
 
                 {/* Quick Deploy Stationed Extractor */}
                 <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                  {node.id === 'water' ? (
+                  {node.id === 'ficsmas_gift' ? (
+                    gameState.unlockedBuildings.includes('ficsmas_gift_tree') ? (
+                      <button
+                        onClick={() => onBuildMachine('ficsmas_gift_tree', undefined, 'ficsmas_gift')}
+                        className="flex-1 py-1.5 px-2 bg-red-950/40 hover:bg-red-900/60 border border-red-700/60 text-[11px] font-mono-numbers text-red-200 rounded hover:text-white transition-colors flex items-center justify-center gap-1"
+                      >
+                        <Gift className="w-3 h-3 text-red-400" />
+                        <span>Deploy Gift Tree</span>
+                      </button>
+                    ) : (
+                      <div className="w-full text-center py-1 text-[11px] text-slate-500 font-mono-numbers italic">
+                        Unlock Gift Tree via MAM Holiday Tech Tree
+                      </div>
+                    )
+                  ) : node.id === 'water' ? (
                     gameState.unlockedBuildings.includes('water_extractor') ? (
                       <button
                         onClick={() => onBuildMachine('water_extractor', undefined, node.id)}

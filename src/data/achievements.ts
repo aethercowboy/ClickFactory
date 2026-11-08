@@ -279,4 +279,97 @@ export const ACHIEVEMENTS: AchievementDef[] = [
       };
     },
   },
+
+  // 15. Merry FICSIT (First Gift)
+  {
+    id: 'ficsmas_first_gift',
+    title: 'Merry FICSIT',
+    description: 'Harvest or collect your first FICSMAS Gift dropped from planetary orbit.',
+    category: 'special',
+    icon: 'Gift',
+    rewardCoupons: 1,
+    check: (state: GameSaveData) =>
+      (state.inventory.ficsmas_gift || 0) > 0 || (state.ficsmasPresentsCollected || 0) > 0,
+    getProgress: (state: GameSaveData) => {
+      const cur = Math.max(state.inventory.ficsmas_gift || 0, state.ficsmasPresentsCollected || 0);
+      return {
+        current: Math.min(1, cur),
+        target: 1,
+        formatted: cur > 0 ? '1 / 1 gift collected' : '0 / 1 gift collected',
+      };
+    },
+  },
+
+  // 16. Deck the Factory Halls (50 Decorations)
+  {
+    id: 'ficsmas_decorations',
+    title: 'Deck the Factory Halls',
+    description: 'Stockpile at least 50 holiday decorations (ornaments or bows) in factory storage.',
+    category: 'production',
+    icon: 'Sparkles',
+    rewardCoupons: 2,
+    check: (state: GameSaveData) => {
+      const total =
+        (state.inventory.ficsmas_ornament_red || 0) +
+        (state.inventory.ficsmas_ornament_blue || 0) +
+        (state.inventory.ficsmas_ornament_copper || 0) +
+        (state.inventory.ficsmas_ornament_iron || 0) +
+        (state.inventory.ficsmas_bow || 0);
+      return total >= 50;
+    },
+    getProgress: (state: GameSaveData) => {
+      const total =
+        (state.inventory.ficsmas_ornament_red || 0) +
+        (state.inventory.ficsmas_ornament_blue || 0) +
+        (state.inventory.ficsmas_ornament_copper || 0) +
+        (state.inventory.ficsmas_ornament_iron || 0) +
+        (state.inventory.ficsmas_bow || 0);
+      return {
+        current: Math.min(50, total),
+        target: 50,
+        formatted: `${Math.floor(Math.min(50, total))} / 50 decorations`,
+      };
+    },
+  },
+
+  // 17. Holiday Automation (Gift Tree)
+  {
+    id: 'ficsmas_gift_tree',
+    title: 'Holiday Automation',
+    description: 'Construct a FICSMAS Gift Tree to automate orbital present harvesting.',
+    category: 'automation',
+    icon: 'TreePine',
+    rewardCoupons: 3,
+    check: (state: GameSaveData) =>
+      state.machines.some(m => m.buildingId === 'ficsmas_gift_tree' && m.count > 0),
+    getProgress: (state: GameSaveData) => {
+      const count = state.machines
+        .filter(m => m.buildingId === 'ficsmas_gift_tree')
+        .reduce((acc, m) => acc + m.count, 0);
+      return {
+        current: Math.min(1, count),
+        target: 1,
+        formatted: `${Math.min(1, count)} / 1 trees built`,
+      };
+    },
+  },
+
+  // 18. A Star in the Sky (Wonder Star)
+  {
+    id: 'ficsmas_wonder_star',
+    title: 'A Star in the Sky',
+    description: 'Synthesize the magnificent FICSMAS Wonder Star atop the holiday tech tree.',
+    category: 'special',
+    icon: 'Star',
+    rewardCoupons: 10,
+    check: (state: GameSaveData) => (state.inventory.ficsmas_wonder_star || 0) >= 1,
+    getProgress: (state: GameSaveData) => {
+      const cur = state.inventory.ficsmas_wonder_star || 0;
+      return {
+        current: Math.min(1, cur),
+        target: 1,
+        formatted: cur >= 1 ? 'Wonder Star Crafted!' : '0 / 1 crafted',
+      };
+    },
+  },
 ];

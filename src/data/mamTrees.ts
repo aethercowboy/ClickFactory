@@ -192,4 +192,107 @@ export const ALL_MAM_NODES: MAMNodeDef[] = [
       perkName: 'Alternate: Bolted Iron Plate (+100% Yield)',
     },
   },
+
+  // FICSMAS HOLIDAY TREE
+  {
+    id: 'mam_ficsmas_holiday_cheer',
+    tree: 'ficsmas',
+    name: 'Holiday Spirit Analysis',
+    description: 'Initial telemetry scan of festive packages descending through the clouds. Unlocks Red & Blue Ornaments and Tree Branches.',
+    researchDuration: 5,
+    cost: [{ itemId: 'ficsmas_gift', amount: 10 }],
+    prerequisites: [],
+    unlocks: {
+      recipes: [
+        'recipe_ficsmas_tree_branch',
+        'recipe_ficsmas_ornament_red',
+        'recipe_ficsmas_ornament_blue',
+      ],
+      perkName: 'Holiday Ornaments & Tree Branches',
+    },
+  },
+  {
+    id: 'mam_ficsmas_confectionery',
+    tree: 'ficsmas',
+    name: 'Festive Confectionery & Bows',
+    description: 'Extract sucrose polymers and vibrant ribbons from holiday parcels. Unlocks Candy Canes & Bows.',
+    researchDuration: 8,
+    cost: [
+      { itemId: 'ficsmas_gift', amount: 25 },
+      { itemId: 'ficsmas_tree_branch', amount: 10 },
+    ],
+    prerequisites: ['mam_ficsmas_holiday_cheer'],
+    unlocks: {
+      recipes: ['recipe_ficsmas_candy_cane', 'recipe_ficsmas_bow'],
+      perkName: 'Candy Canes & Festive Bows',
+    },
+  },
+  {
+    id: 'mam_ficsmas_metallurgy',
+    tree: 'ficsmas',
+    name: 'Industrial Bauble Metallurgy',
+    description: 'Plate holiday ornaments in structural iron and conductive copper. Unlocks Copper & Iron Ornaments.',
+    researchDuration: 12,
+    cost: [
+      { itemId: 'ficsmas_ornament_red', amount: 15 },
+      { itemId: 'ficsmas_ornament_blue', amount: 15 },
+      { itemId: 'copper_sheet', amount: 20 },
+    ],
+    prerequisites: ['mam_ficsmas_holiday_cheer'],
+    unlocks: {
+      recipes: ['recipe_ficsmas_ornament_copper', 'recipe_ficsmas_ornament_iron'],
+      perkName: 'Copper & Iron Ornaments',
+    },
+  },
+  {
+    id: 'mam_ficsmas_snowballs',
+    tree: 'ficsmas',
+    name: 'Cryogenic Snowballs',
+    description: 'Compress gift vapor into cryogenic snowballs for playful festive factory recreation.',
+    researchDuration: 8,
+    cost: [
+      { itemId: 'ficsmas_gift', amount: 20 },
+      { itemId: 'water', amount: 50 },
+    ],
+    prerequisites: ['mam_ficsmas_confectionery'],
+    unlocks: {
+      recipes: ['recipe_ficsmas_snowball'],
+      perkName: 'FICSMAS Snowballs',
+    },
+  },
+  {
+    id: 'mam_ficsmas_gift_tree',
+    tree: 'ficsmas',
+    name: 'FICSMAS Gift Tree Automation',
+    description: 'Assemble an automated gift harvester disguised as a holiday tree. Drops gifts autonomously.',
+    researchDuration: 15,
+    cost: [
+      { itemId: 'ficsmas_tree_branch', amount: 25 },
+      { itemId: 'ficsmas_ornament_copper', amount: 10 },
+      { itemId: 'ficsmas_ornament_iron', amount: 10 },
+    ],
+    prerequisites: ['mam_ficsmas_metallurgy'],
+    unlocks: {
+      buildings: ['ficsmas_gift_tree'],
+      perkName: 'Automated Gift Tree',
+    },
+  },
+  {
+    id: 'mam_ficsmas_wonder_star',
+    tree: 'ficsmas',
+    name: 'FICSMAS Wonder Star Synthesis',
+    description: 'The absolute zenith of pioneer holiday craftsmanship. Unlocks the magnificent FICSMAS Wonder Star recipe.',
+    researchDuration: 25,
+    cost: [
+      { itemId: 'ficsmas_ornament_copper', amount: 25 },
+      { itemId: 'ficsmas_ornament_iron', amount: 25 },
+      { itemId: 'ficsmas_bow', amount: 25 },
+      { itemId: 'ficsmas_candy_cane', amount: 25 },
+    ],
+    prerequisites: ['mam_ficsmas_gift_tree', 'mam_ficsmas_snowballs'],
+    unlocks: {
+      recipes: ['recipe_ficsmas_wonder_star'],
+      perkName: 'FICSMAS Wonder Star Recipe',
+    },
+  },
 ];

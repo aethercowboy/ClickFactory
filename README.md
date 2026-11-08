@@ -1,7 +1,7 @@
 # ClickFactory (FICSIT Pioneer: Factory Automation)
 
 [![Play Live](https://img.shields.io/badge/Play%20Live-aethercowboy.github.io%2FClickFactory-orange?style=for-the-badge&logo=google-chrome&logoColor=white)](https://aethercowboy.github.io/ClickFactory)
-[![Version](https://img.shields.io/badge/version-0.5.0-blue?style=for-the-badge)](./package.json)
+[![Version](https://img.shields.io/badge/version-0.6.1-blue?style=for-the-badge)](./package.json)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green?style=for-the-badge)](./LICENSE)
 
 Play the live game directly in your browser:  
@@ -156,6 +156,22 @@ npm test
 
 ## Changelog
 
+### v0.6.1
+- **Responsive Settings Modal Architecture**: Fixed mobile & small-screen viewport cutoff where the Settings modal exceeded screen height and hid the Close button.
+- **Sticky Header & Footer Controls**: Added persistent sticky header with touch-friendly Close button (`X` icon + label) and a dedicated sticky footer with prominent "Close Settings" action button.
+- **Scrollable Modal Body**: Constrained dialog to `max-h-[92vh]` with internal smooth scrolling (`overflow-y-auto`).
+- **Backdrop & Keyboard Dismissal**: Enabled backdrop click-to-close and `Escape` key shortcut support.
+
+### v0.6.0
+- **Seasonal FICSMAS Holiday Event**: Added full Satisfactory-style holiday event with giant gifts dropped from planetary orbit.
+- **Calendar & Manual Override Controls**: Automatically active every December (Dec 1 - Dec 31); includes settings in Pioneer Terminal to force Always Active, Seasonal, or Disabled at any time.
+- **Giant Present Harvesting & Automation**: Harvest orbital gift drops manually with cheerful silver bell chimes, or construct automated robotic FICSMAS Gift Trees (15 gifts/min).
+- **MAM Holiday Tech Tree**: Integrated 6 holiday research nodes unlocking Red/Blue/Copper/Iron Ornaments, Tree Branches, Candy Canes, Festive Bows, Cryogenic Snowballs, Automated Gift Trees, and the pinnacle FICSMAS Wonder Star.
+- **Falling Snowflakes Background Effect**: 48 animated, gently swaying CSS snowflakes drifting across the factory environment whenever FICSMAS mode is active.
+- **Holiday Boombox Track & Audio**: Added *FICSIT Holiday Jingle Bells* procedural synth cassette track and festive silver bell sound effects.
+- **Holiday Accolades**: Added 4 festive achievements (*Merry FICSIT*, *Deck the Factory Halls*, *Holiday Automation*, *A Star in the Sky*).
+- **Automated Verification**: Added Test Suite 9 verifying FICSMAS calendar logic, tech tree nodes, item recipes, and SemVer 0.6.0 compliance.
+
 ### v0.5.0
 - **Planetary Biome Sectors (Theme Switcher)**: Added 5 authentic Satisfactory biomes on MASSAGE-2(A-B)b (*Grass Fields*, *Rocky Desert*, *Northern Forest*, *Dune Desert*, *Titan Forest*).
 - **Dynamic Visual Atmosphere**: Each biome transforms the factory skyline canvas, backdrop lighting gradient, environmental traits notes, and color accents.
@@ -181,7 +197,7 @@ npm test
 
 This project adheres strictly to [Semantic Versioning (SemVer)](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
-- Current Version: **v0.5.0** (displayed in `package.json`, `src/version.ts`, top navigation bar, and settings modal).
+- Current Version: **v0.6.1** (displayed in `package.json`, `src/version.ts`, top navigation bar, and settings modal).
 - When submitting features, enhancements, or bugfixes, see [AGENTS.md](./AGENTS.md) for required version bump procedures and testing rules.
 
 ---

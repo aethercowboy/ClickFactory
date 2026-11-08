@@ -14,10 +14,12 @@ import {
   Lock,
   Trophy,
   Compass,
+  Gift,
 } from 'lucide-react';
 import { isFeatureUnlocked } from '../utils/progression';
 import { APP_VERSION } from '../version';
 import { getBiomeDef } from '../data/biomes';
+import { isFicsmasActive } from '../utils/ficsmas';
 
 interface HeaderProps {
   gameState: GameSaveData;
@@ -310,6 +312,18 @@ export const Header: React.FC<HeaderProps> = ({
                 <Compass className="w-3.5 h-3.5" />
                 <span className="hidden lg:inline text-slate-400">Biome:</span>
                 <strong className="text-white">{currentBiome.name}</strong>
+              </button>
+            )}
+
+            {/* FICSMAS Seasonal Event badge */}
+            {isFicsmasActive(gameState) && (
+              <button
+                onClick={onOpenSettings}
+                title="FICSMAS Holiday Mode is Active! Click to configure in Settings."
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-red-950/60 hover:bg-red-900/80 border border-red-500/60 text-red-200 text-xs font-mono-numbers transition-colors"
+              >
+                <Gift className="w-3.5 h-3.5 text-red-400 animate-pulse" />
+                <span className="font-bold">FICSMAS Active 🎁</span>
               </button>
             )}
 
