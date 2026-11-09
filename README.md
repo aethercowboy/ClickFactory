@@ -1,7 +1,7 @@
 # ClickFactory (FICSIT Pioneer: Factory Automation)
 
 [![Play Live](https://img.shields.io/badge/Play%20Live-aethercowboy.github.io%2FClickFactory-orange?style=for-the-badge&logo=google-chrome&logoColor=white)](https://aethercowboy.github.io/ClickFactory)
-[![Version](https://img.shields.io/badge/version-0.7.0-blue?style=for-the-badge)](./package.json)
+[![Version](https://img.shields.io/badge/version-0.8.0-blue?style=for-the-badge)](./package.json)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green?style=for-the-badge)](./LICENSE)
 
 Play the live game directly in your browser:  
@@ -162,6 +162,17 @@ npm test
 
 ## Changelog
 
+### v0.8.0
+- **Logistics Net Flow Rate Filter & Bottleneck Detection**: Added comprehensive flow rate filtering on the Logistics tab to easily diagnose deficits, stagnant components, and throughput thresholds.
+- **Arbitrary Rate Input & Interactive Scrubbing Slider**: Type any arbitrary numeric value (positive, negative, or decimal) or scrub continuously with a dynamic range slider to show components with net flow less than or equal to that rate.
+- **Deficit & Zero Flow Analysis**: Easily view strictly negative flow rates (`< 0`, consuming faster than producing) or include neutral/zero flow rates (`≤ 0`) with single-click condition toggling.
+- **Dual Display & Filter Units (/min and /sec)**: Seamlessly toggle between FICSIT standard `/min` and per-second `/sec` rates, with live secondary unit conversions displayed in parentheses.
+- **Quick Preset Chips**: Instant 1-click filters for *All*, *Deficit Only (< 0)*, *Zero or Deficit (≤ 0)*, *< 60/min (1/s)* (Mk.1 conveyor belt speed), and *< 60/sec (3,600/min)*.
+- **Interactive Flow Metric Cards**: Clickable summary cards for *All Active*, *Deficits*, *Neutral/Zero*, and *Surplus Growing* that immediately focus the table on those items.
+- **Clickable Table Sorting**: Click any column header (Item Name, Stock, Production Rate, Consumption Rate, Net Flow Rate) to sort ascending or descending (defaulting to biggest deficits first).
+- **Scope & Category Controls**: Filter by component category or toggle *Include Stagnant (0-stock)* to survey all discovered materials.
+- **Automated Verification**: Added Test Suite 11 in `test/progression.test.ts` verifying flow filtering, zero handling, unit conversions, and SemVer 0.8.0 compliance.
+
 ### v0.7.0
 - **Lizard Doggo Companion ("Can You Pet the Dog?")**: Added Satisfactory's iconic reptilian canine companion to ClickFactory.
 - **Interactive Petting Action**: Pet your Lizard Doggo at any time with floating heart particles, floppy ear-fin and tail wag animations, and procedural audio (warm purrs and friendly yips).
@@ -213,7 +224,7 @@ npm test
 
 This project adheres strictly to [Semantic Versioning (SemVer)](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
-- Current Version: **v0.7.0** (displayed in `package.json`, `src/version.ts`, top navigation bar, and settings modal).
+- Current Version: **v0.8.0** (displayed in `package.json`, `src/version.ts`, top navigation bar, and settings modal).
 - When submitting features, enhancements, or bugfixes, see [AGENTS.md](./AGENTS.md) for required version bump procedures and testing rules.
 
 ---

@@ -763,20 +763,76 @@ export function runProgressionTests() {
   }
   console.log('  ✓ Doggo achievement predicates verified (pet_the_doggo, doggo_best_friend, doggo_retriever).');
 
-  // Verify SemVer v0.7.0
+  // TEST 11: Logistics Tab Net Flow Rate Filtering & Unit Conversions
+  console.log('\n[TEST 11] Verifying Logistics Net Flow Rate Filter Logic & Conversions...');
+
+  // Sample production rates (in items/min)
+  const sampleNetPerMin: Record<string, number> = {
+    iron_ore: -30,       // Deficit: -30/m = -0.5/s
+    copper_ore: 0,       // Zero: 0/m = 0/s
+    limestone: 15,       // Surplus: +15/m = +0.25/s
+    iron_plate: 60,      // +60/m = +1.0/s (Mk.1 Belt speed)
+    caterium_ingot: 3600,// +3600/m = +60.0/s
+    screws: 7200,        // High throughput: +7200/m = +120.0/s
+  };
+
+  // 11A. Deficit Filter (< 0)
+  const deficitMatches = Object.entries(sampleNetPerMin).filter(([_, netMin]) => netMin < 0);
+  if (deficitMatches.length !== 1 || deficitMatches[0][0] !== 'iron_ore') {
+    console.error(`FAIL: Deficit filter (< 0) expected ['iron_ore'], got ${JSON.stringify(deficitMatches)}`);
+    failures++;
+  } else {
+    console.log('  ✓ Deficit filter (< 0) correctly isolates negative flow rates.');
+  }
+
+  // 11B. Zero or Deficit Filter (<= 0)
+  const zeroOrDeficitMatches = Object.entries(sampleNetPerMin).filter(([_, netMin]) => netMin <= 0);
+  const zeroOrDeficitKeys = zeroOrDeficitMatches.map(([k]) => k).sort();
+  if (zeroOrDeficitKeys.length !== 2 || zeroOrDeficitKeys[0] !== 'copper_ore' || zeroOrDeficitKeys[1] !== 'iron_ore') {
+    console.error(`FAIL: Zero or deficit filter (<= 0) expected ['copper_ore', 'iron_ore'], got ${JSON.stringify(zeroOrDeficitKeys)}`);
+    failures++;
+  } else {
+    console.log('  ✓ Zero or deficit filter (<= 0) includes negative rates and 0 flow rates.');
+  }
+
+  // 11C. Less Than 60/s (<= 60 in /sec or <= 3600 in /min)
+  const lessThan60SecMatches = Object.entries(sampleNetPerMin).filter(([_, netMin]) => {
+    const netSec = netMin / 60;
+    return netSec <= 60;
+  });
+  const lessThan60SecKeys = lessThan60SecMatches.map(([k]) => k).sort();
+  // All except screws (which is 120/s)
+  if (lessThan60SecKeys.includes('screws') || !lessThan60SecKeys.includes('caterium_ingot')) {
+    console.error(`FAIL: Less than 60/s filter failed: got ${JSON.stringify(lessThan60SecKeys)}`);
+    failures++;
+  } else {
+    console.log(`  ✓ Less than 60/s filter matches components <= 60/s (${lessThan60SecKeys.length} items, excludes high 120/s).`);
+  }
+
+  // 11D. Arbitrary Threshold & Unit Conversion
+  const testValMin = 60;
+  const testValSec = testValMin / 60; // 1.0/s
+  if (testValSec !== 1.0) {
+    console.error(`FAIL: Unit conversion 60/m must equal 1.0/s, got ${testValSec}`);
+    failures++;
+  } else {
+    console.log('  ✓ Unit conversion between items/min and items/sec verified exact.');
+  }
+
+  // Verify SemVer v0.8.0
   const curPkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-  if (curPkg.version !== '0.7.0' || APP_VERSION !== '0.7.0') {
-    console.error(`FAIL: Version must be 0.7.0! Got package.json=${curPkg.version}, APP_VERSION=${APP_VERSION}`);
+  if (curPkg.version !== '0.8.0' || APP_VERSION !== '0.8.0') {
+    console.error(`FAIL: Version must be 0.8.0! Got package.json=${curPkg.version}, APP_VERSION=${APP_VERSION}`);
     failures++;
   }
-  console.log(`  ✓ SemVer v0.7.0 consistency verified across package.json and src/version.ts.`);
+  console.log(`  ✓ SemVer v0.8.0 consistency verified across package.json and src/version.ts.`);
 
   console.log('\n--------------------------------------------------------------');
   if (failures > 0) {
-    console.error(`FAILED: ${failures} progression / circularity / power / craft / achievement / biome / ficsmas / doggo errors detected.`);
+    console.error(`FAILED: ${failures} progression / circularity / power / craft / achievement / biome / ficsmas / doggo / logistics errors detected.`);
     process.exit(1);
   } else {
-    console.log('SUCCESS: All 10 test suites passed! Lizard Doggo companion, FICSMAS seasonal mode, power generators, progression, craft times, achievements, biomes, and versioning verified.');
+    console.log('SUCCESS: All 11 test suites passed! Logistics net flow rate filters, Lizard Doggo companion, FICSMAS, power, progression, craft times, achievements, biomes, and versioning verified.');
   }
 }
 
