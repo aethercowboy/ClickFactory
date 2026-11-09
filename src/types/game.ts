@@ -88,7 +88,9 @@ export type ItemId =
   | 'ficsmas_bow'
   | 'ficsmas_candy_cane'
   | 'ficsmas_snowball'
-  | 'ficsmas_wonder_star';
+  | 'ficsmas_wonder_star'
+  // Native Fauna & Treats
+  | 'paleberry';
 
 export type ItemCategory =
   | 'raw'
@@ -292,6 +294,21 @@ export type BiomeId =
   | 'dune_desert'
   | 'titan_forest';
 
+export interface LizardDoggoState {
+  isTamed: boolean;
+  name: string;
+  petsCount: number;
+  happiness: number; // 0 - 100
+  lastPetTime: number;
+  heldItem: {
+    itemId: ItemId;
+    amount: number;
+    foundAt?: number;
+  } | null;
+  itemsRetrievedCount: number;
+  retrievalTimerMs: number; // counts down to next item fetched
+}
+
 export interface GameSaveData {
   version: number;
   lastTick: number;
@@ -320,6 +337,7 @@ export interface GameSaveData {
   selectedBiome?: BiomeId;
   ficsmasMode?: 'auto' | 'enabled' | 'disabled';
   ficsmasPresentsCollected?: number;
+  doggo?: LizardDoggoState;
   overclockCap: number; // default 1.0 (100%), can go to 2.5
   pioneerStats: {
     manualClicks: number;
@@ -328,6 +346,7 @@ export interface GameSaveData {
     totalPartsMade: number;
     powerTripsCount: number;
     playtimeSeconds: number;
+    doggoPets?: number;
   };
   audioMuted: boolean;
   ambientTrack: boolean;

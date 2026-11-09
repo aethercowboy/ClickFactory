@@ -1,6 +1,17 @@
-import { GameSaveData, ItemId } from '../types/game';
+import { GameSaveData, ItemId, LizardDoggoState } from '../types/game';
 
 const SAVE_KEY = 'FICSIT_PIONEER_SAVE_V1';
+
+export const INITIAL_DOGGO: LizardDoggoState = {
+  isTamed: true,
+  name: 'Lizard Doggo',
+  petsCount: 0,
+  happiness: 80,
+  lastPetTime: Date.now(),
+  heldItem: null,
+  itemsRetrievedCount: 0,
+  retrievalTimerMs: 25000,
+};
 
 export const INITIAL_SAVE: GameSaveData = {
   version: 1,
@@ -86,6 +97,7 @@ export const INITIAL_SAVE: GameSaveData = {
     ficsmas_candy_cane: 0,
     ficsmas_snowball: 0,
     ficsmas_wonder_star: 0,
+    paleberry: 3,
   },
   unlockedOres: ['iron_ore', 'leaves'],
   unlockedRecipes: [
@@ -120,6 +132,7 @@ export const INITIAL_SAVE: GameSaveData = {
   ficsmasMode: 'auto',
   ficsmasPresentsCollected: 0,
   overclockCap: 1.0,
+  doggo: INITIAL_DOGGO,
   pioneerStats: {
     manualClicks: 0,
     manualCrafts: 0,
@@ -127,6 +140,7 @@ export const INITIAL_SAVE: GameSaveData = {
     totalPartsMade: 0,
     powerTripsCount: 0,
     playtimeSeconds: 0,
+    doggoPets: 0,
   },
   audioMuted: false,
   ambientTrack: false,
@@ -150,6 +164,7 @@ export function loadGame(): GameSaveData {
       activeCrafting: parsed.activeCrafting || null,
       powerGrid: { ...INITIAL_SAVE.powerGrid, ...parsed.powerGrid },
       pioneerStats: { ...INITIAL_SAVE.pioneerStats, ...parsed.pioneerStats },
+      doggo: parsed.doggo ? { ...INITIAL_DOGGO, ...parsed.doggo } : INITIAL_DOGGO,
     };
   } catch (e) {
     console.error('Failed to load save:', e);
@@ -186,6 +201,8 @@ export function importSave(jsonStr: string): GameSaveData | null {
       ficsmasMode: parsed.ficsmasMode || 'auto',
       ficsmasPresentsCollected: parsed.ficsmasPresentsCollected || 0,
       powerGrid: { ...INITIAL_SAVE.powerGrid, ...parsed.powerGrid },
+      pioneerStats: { ...INITIAL_SAVE.pioneerStats, ...parsed.pioneerStats },
+      doggo: parsed.doggo ? { ...INITIAL_DOGGO, ...parsed.doggo } : INITIAL_DOGGO,
     };
   } catch (e) {
     return null;

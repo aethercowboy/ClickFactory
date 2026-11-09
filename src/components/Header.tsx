@@ -20,6 +20,8 @@ import { isFeatureUnlocked } from '../utils/progression';
 import { APP_VERSION } from '../version';
 import { getBiomeDef } from '../data/biomes';
 import { isFicsmasActive } from '../utils/ficsmas';
+import { ACHIEVEMENTS } from '../data/achievements';
+import { Heart } from 'lucide-react';
 
 interface HeaderProps {
   gameState: GameSaveData;
@@ -30,6 +32,7 @@ interface HeaderProps {
   onOpenSettings: () => void;
   onOpenAchievements: () => void;
   onOpenBiomePicker?: () => void;
+  onOpenDoggo?: () => void;
   onToggleBoombox: () => void;
   isBoomboxOpen?: boolean;
   onToggleSound: () => void;
@@ -45,6 +48,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenSettings,
   onOpenAchievements,
   onOpenBiomePicker,
+  onOpenDoggo,
   onToggleBoombox,
   isBoomboxOpen,
   onToggleSound,
@@ -295,8 +299,31 @@ export const Header: React.FC<HeaderProps> = ({
               title="Open FICSIT Pioneer Accolades & Achievements"
             >
               <Trophy className="w-3.5 h-3.5 text-[#fa9549]" />
-              <span>Accolades: <strong className="text-white">{(gameState.unlockedAchievements || []).length}</strong>/14</span>
+              <span>Accolades: <strong className="text-white">{(gameState.unlockedAchievements || []).length}</strong>/{ACHIEVEMENTS.length}</span>
             </button>
+
+            {/* Lizard Doggo Companion Button */}
+            {onOpenDoggo && gameState.doggo && (
+              <button
+                onClick={onOpenDoggo}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded border transition-colors text-xs font-mono-numbers ${
+                  gameState.doggo.heldItem
+                    ? 'bg-emerald-950/70 hover:bg-emerald-900 border-emerald-500/80 text-emerald-300 animate-pulse'
+                    : 'bg-[#18202a] hover:bg-[#222c3a] border-[#263445] text-amber-300 hover:text-amber-200'
+                }`}
+                title={`${gameState.doggo.name}: ${gameState.doggo.heldItem ? 'Treasure in pouch! Click to collect.' : `Click to pet ${gameState.doggo.name}! (${Math.round(gameState.doggo.happiness)}% happy)`}`}
+              >
+                <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
+                <span>
+                  🐶 <strong className="text-white">{gameState.doggo.name}</strong>
+                  {gameState.doggo.heldItem ? (
+                    <span className="ml-1 text-[10px] text-emerald-400 font-bold">🎁 ITEM!</span>
+                  ) : (
+                    <span className="ml-1 text-[10px] text-neutral-400">({Math.round(gameState.doggo.happiness)}%)</span>
+                  )}
+                </span>
+              </button>
+            )}
 
             {/* Biome Sector / Theme Switcher */}
             {onOpenBiomePicker && (

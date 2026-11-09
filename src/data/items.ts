@@ -594,6 +594,16 @@ export const ALL_ITEMS: Record<ItemId, ItemDef> = {
     color: '#f59e0b',
     unit: 'ticket',
   },
+  paleberry: {
+    id: 'paleberry',
+    name: 'Paleberry',
+    category: 'special',
+    description: 'Sweet succulent alien berry beloved by native fauna. Offer to Lizard Doggos for happiness and taming!',
+    tierUnlocked: 0,
+    sinkPoints: 10,
+    color: '#f43f5e',
+    unit: 'berry',
+  },
 
   // Space Elevator Project Parts
   smart_plating: {

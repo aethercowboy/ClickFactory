@@ -1,7 +1,7 @@
 # ClickFactory (FICSIT Pioneer: Factory Automation)
 
 [![Play Live](https://img.shields.io/badge/Play%20Live-aethercowboy.github.io%2FClickFactory-orange?style=for-the-badge&logo=google-chrome&logoColor=white)](https://aethercowboy.github.io/ClickFactory)
-[![Version](https://img.shields.io/badge/version-0.6.1-blue?style=for-the-badge)](./package.json)
+[![Version](https://img.shields.io/badge/version-0.7.0-blue?style=for-the-badge)](./package.json)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green?style=for-the-badge)](./LICENSE)
 
 Play the live game directly in your browser:  
@@ -92,7 +92,13 @@ Extract raw planetary ores, machine foundational plates and rods, establish auto
   - *Dune Desert (Sector 04)*: Immense copper-orange dunes, blazing desert sun, heat mirage horizons, and open mega-factory topography.
   - *Titan Forest (Sector 05)*: Primeval alien biosphere crowned with giant bioluminescent mushroom spires, violet mycelium glow, and exotic SAM/Uranium nodes.
 - **Dynamic Factory Horizon & Lighting**: Each biome dynamically adjusts sky gradients, backdrop lighting, environmental trait notes, and Web Audio synthesizer drone chords.
-- **Seamless Sector Deployment**: Switch biomes at any time via the Header Biome badge, the Factory Flow Map sector button, or the Settings modal with instant, zero-progress-loss deployment.
+### 8. Lizard Doggo Native Companion ("Can You Pet the Dog?")
+- **Interactive Companion Mechanics**: Adopt and care for MASSAGE-2(A-B)b's most beloved native creature, the Lizard Doggo (*Canine Reptilia*).
+- **Petting Interaction**: Interactive petting with floating heart bursts, tail wags, affectionate alien purrs, and playful yips.
+- **Treat Feeding**: Feed sweet Paleberries (+25% happiness, -14s foraging cooldown) or fresh Leaves (+8% happiness) to boost mood and foraging speed.
+- **Wild Foraging & Deliveries**: Doggo periodically forages in the alien wilds and brings back gifts (Leaves, Paleberries, Caterium, Quartz, Power Shards, SAM Ore, seasonal FICSMAS gifts, or the iconic 2% Nuclear Waste hazard gag!).
+- **Sanctuary Modal & Quick Dock**: Dedicated sanctuary dialog for petting, treat feeding, custom renaming, and item collection, plus a persistent quick-dock widget in the primary factory workspace.
+- **Doggo Accolades**: 3 dedicated achievements (*Yes, You Can Pet the Dog!*, *Pioneer's Best Friend*, and *Good Boy Delivery*).
 
 ---
 
@@ -156,6 +162,16 @@ npm test
 
 ## Changelog
 
+### v0.7.0
+- **Lizard Doggo Companion ("Can You Pet the Dog?")**: Added Satisfactory's iconic reptilian canine companion to ClickFactory.
+- **Interactive Petting Action**: Pet your Lizard Doggo at any time with floating heart particles, floppy ear-fin and tail wag animations, and procedural audio (warm purrs and friendly yips).
+- **Doggo Sanctuary Modal**: Full companion hub with animated SVG illustration, mood indicator (5 happiness tiers), custom companion renaming, treat feeding, and retrieved treasure slot.
+- **Companion Quick-Dock Widget**: Persistent mini companion card on the main factory workspace providing 1-click petting, item delivery alert, and happiness status.
+- **Treat Feeding System**: Feed sweet Paleberries (+25% happiness, -14s foraging cooldown) or fresh Leaves (+8% happiness) to accelerate foraging cycles.
+- **Wild Foraging & Deliveries**: Periodically fetches gifts from MASSAGE-2(A-B)b's wild (common: Leaves/Ingots/Paleberries; uncommon: Caterium/Quartz/Alien Remains; rare: Power Shards/SAM Ore; holiday: FICSMAS gifts; and a hilarious 2% Nuclear Waste hazard delivery with radiation warning!).
+- **New Accolades & Audio**: Added 3 achievements (*Yes, You Can Pet the Dog!*, *Pioneer's Best Friend*, *Good Boy Delivery*) and Web Audio synthesis for purrs, barks, and delivery chimes.
+- **Automated Verification**: Added Test Suite 10 verifying Doggo state, petting logic, foraging roll tables, and SemVer 0.7.0 compliance.
+
 ### v0.6.1
 - **Responsive Settings Modal Architecture**: Fixed mobile & small-screen viewport cutoff where the Settings modal exceeded screen height and hid the Close button.
 - **Sticky Header & Footer Controls**: Added persistent sticky header with touch-friendly Close button (`X` icon + label) and a dedicated sticky footer with prominent "Close Settings" action button.
@@ -197,7 +213,7 @@ npm test
 
 This project adheres strictly to [Semantic Versioning (SemVer)](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
-- Current Version: **v0.6.1** (displayed in `package.json`, `src/version.ts`, top navigation bar, and settings modal).
+- Current Version: **v0.7.0** (displayed in `package.json`, `src/version.ts`, top navigation bar, and settings modal).
 - When submitting features, enhancements, or bugfixes, see [AGENTS.md](./AGENTS.md) for required version bump procedures and testing rules.
 
 ---

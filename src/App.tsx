@@ -16,6 +16,8 @@ import { AchievementsModal } from './components/AchievementsModal';
 import { BoomboxWidget } from './components/BoomboxWidget';
 import { BiomePickerModal } from './components/BiomePickerModal';
 import { SnowEffect } from './components/SnowEffect';
+import { DoggoSanctuaryModal } from './components/DoggoSanctuaryModal';
+import { DoggoDockWidget } from './components/DoggoDockWidget';
 import { audio } from './utils/audio';
 import { INITIAL_SAVE } from './utils/saveLoad';
 import { isFeatureUnlocked } from './utils/progression';
@@ -47,6 +49,10 @@ export default function App() {
     buyShopItem,
     selectBiome,
     setFicsmasMode,
+    petDoggo,
+    feedDoggo,
+    collectDoggoItem,
+    renameDoggo,
     addNotification,
     dismissNotification,
   } = useGameLoop();
@@ -58,6 +64,7 @@ export default function App() {
   const [isAchievementsOpen, setIsAchievementsOpen] = useState<boolean>(false);
   const [isBoomboxOpen, setIsBoomboxOpen] = useState<boolean>(false);
   const [isBiomePickerOpen, setIsBiomePickerOpen] = useState<boolean>(false);
+  const [isDoggoModalOpen, setIsDoggoModalOpen] = useState<boolean>(false);
 
   const currentBiome = getBiomeDef(gameState.selectedBiome);
 
@@ -120,6 +127,7 @@ export default function App() {
         onOpenSettings={() => setIsSettingsOpen(true)}
         onOpenAchievements={() => setIsAchievementsOpen(true)}
         onOpenBiomePicker={() => setIsBiomePickerOpen(true)}
+        onOpenDoggo={() => setIsDoggoModalOpen(true)}
         onToggleBoombox={() => setIsBoomboxOpen(prev => !prev)}
         isBoomboxOpen={isBoomboxOpen}
         onToggleSound={toggleSound}
@@ -182,6 +190,14 @@ export default function App() {
 
       {/* Main Content Workspace */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-6 py-6 space-y-6">
+        {/* Lizard Doggo Companion Quick Dock */}
+        <DoggoDockWidget
+          gameState={gameState}
+          onOpenSanctuary={() => setIsDoggoModalOpen(true)}
+          onPet={petDoggo}
+          onCollectItem={collectDoggoItem}
+        />
+
         {/* Factory Visualizer overview (shows on extraction, factory, stats) */}
         {['extraction', 'factory', 'stats'].includes(activeTab) && (
           <FactoryVisualizer
@@ -383,6 +399,17 @@ export default function App() {
         gameState={gameState}
         isOpen={isBoomboxOpen}
         onClose={() => setIsBoomboxOpen(false)}
+      />
+
+      {/* Lizard Doggo Companion Sanctuary Modal */}
+      <DoggoSanctuaryModal
+        gameState={gameState}
+        isOpen={isDoggoModalOpen}
+        onClose={() => setIsDoggoModalOpen(false)}
+        onPet={petDoggo}
+        onFeed={feedDoggo}
+        onCollectItem={collectDoggoItem}
+        onRename={renameDoggo}
       />
 
       {/* FICSIT Planetary Biome Sector Theme Picker Modal */}

@@ -12,12 +12,14 @@ import { ALL_MAM_NODES } from '../data/mamTrees';
 import { ALL_MILESTONES } from '../data/milestones';
 import { SPACE_ELEVATOR_PHASES } from '../data/spaceElevator';
 import { AWESOME_SHOP_ITEMS } from '../data/awesomeShop';
-import { loadGame, saveGame } from '../utils/saveLoad';
+import { INITIAL_DOGGO, loadGame, saveGame } from '../utils/saveLoad';
 import { audio } from '../utils/audio';
 import { isMilestoneUnlocked } from '../utils/progression';
 import { ACHIEVEMENTS, AchievementDef } from '../data/achievements';
 import { fireAchievementConfetti } from '../utils/confetti';
 import { getBiomeDef } from '../data/biomes';
+import { isFicsmasActive } from '../utils/ficsmas';
+import { getRandomDoggoTreasure, getDoggoRetrievalTimeMs } from '../utils/doggo';
 
 export interface ProductionRates {
   producedPerMin: Record<ItemId, number>;
@@ -629,6 +631,133 @@ export function useGameLoop() {
     });
   }, []);
 
+  // Lizard Doggo Companion Actions:
+  const petDoggo = useCallback(() => {
+    setGameState(prev => {
+      const doggo = prev.doggo || INITIAL_DOGGO;
+      if (Math.random() < 0.25) {
+        audio.playDoggoBark();
+      } else {
+        audio.playDoggoPet();
+      }
+
+      const newPets = (doggo.petsCount || 0) + 1;
+      const newHappiness = Math.min(100, (doggo.happiness || 50) + 6);
+      const newTimer = Math.max(0, (doggo.retrievalTimerMs || 25000) - 4000);
+
+      return {
+        ...prev,
+        doggo: {
+          ...doggo,
+          petsCount: newPets,
+          happiness: newHappiness,
+          lastPetTime: Date.now(),
+          retrievalTimerMs: newTimer,
+        },
+        pioneerStats: {
+          ...prev.pioneerStats,
+          doggoPets: (prev.pioneerStats.doggoPets || 0) + 1,
+        },
+      };
+    });
+  }, []);
+
+  const feedDoggo = useCallback((treatItemId: ItemId) => {
+    setGameState(prev => {
+      const doggo = prev.doggo || INITIAL_DOGGO;
+      const available = prev.inventory[treatItemId] || 0;
+      if (available < 1) return prev;
+
+      let happinessBoost = 8;
+      let timerReduction = 4000;
+      if (treatItemId === 'paleberry') {
+        happinessBoost = 25;
+        timerReduction = 14000;
+        audio.playDoggoBark();
+        addNotification(
+          'Doggo Loved the Treat!',
+          `${doggo.name} gleefully devoured a sweet Paleberry! (+25% Happiness)`,
+          'info'
+        );
+      } else {
+        audio.playDoggoPet();
+        addNotification(
+          'Doggo Munched Snack',
+          `${doggo.name} happily crunched on some fresh Leaves! (+8% Happiness)`,
+          'info'
+        );
+      }
+
+      return {
+        ...prev,
+        inventory: {
+          ...prev.inventory,
+          [treatItemId]: available - 1,
+        },
+        doggo: {
+          ...doggo,
+          happiness: Math.min(100, (doggo.happiness || 50) + happinessBoost),
+          retrievalTimerMs: Math.max(0, (doggo.retrievalTimerMs || 25000) - timerReduction),
+          lastPetTime: Date.now(),
+        },
+      };
+    });
+  }, [addNotification]);
+
+  const collectDoggoItem = useCallback(() => {
+    setGameState(prev => {
+      const doggo = prev.doggo || INITIAL_DOGGO;
+      if (!doggo.heldItem) return prev;
+
+      const { itemId, amount } = doggo.heldItem;
+      audio.playTicketChime();
+
+      if (itemId === 'nuclear_waste') {
+        addNotification(
+          '☢️ Radioactive Delivery!',
+          `${doggo.name} brought Nuclear Waste! Pioneer caution: dispose of it in the AWESOME Sink!`,
+          'power_trip'
+        );
+      } else {
+        const itemName = ALL_ITEMS[itemId]?.name || itemId;
+        addNotification(
+          'Treasure Collected!',
+          `Collected ${amount}x ${itemName} retrieved by ${doggo.name}!`,
+          'info'
+        );
+      }
+
+      return {
+        ...prev,
+        inventory: {
+          ...prev.inventory,
+          [itemId]: (prev.inventory[itemId] || 0) + amount,
+        },
+        doggo: {
+          ...doggo,
+          heldItem: null,
+          itemsRetrievedCount: (doggo.itemsRetrievedCount || 0) + 1,
+          retrievalTimerMs: getDoggoRetrievalTimeMs(doggo.happiness),
+        },
+      };
+    });
+  }, [addNotification]);
+
+  const renameDoggo = useCallback((name: string) => {
+    setGameState(prev => {
+      const doggo = prev.doggo || INITIAL_DOGGO;
+      const clean = name.trim().slice(0, 24) || 'Lizard Doggo';
+      audio.playDoggoBark();
+      return {
+        ...prev,
+        doggo: {
+          ...doggo,
+          name: clean,
+        },
+      };
+    });
+  }, []);
+
   // Main Simulation Loop running at 10Hz (100ms interval)
   useEffect(() => {
     const TICK_INTERVAL_MS = 100;
@@ -910,6 +1039,41 @@ export function useGameLoop() {
           }
         }
 
+        // 5.5 Lizard Doggo Companion Foraging Loop
+        let newDoggo = prevState.doggo ? { ...prevState.doggo } : { ...INITIAL_DOGGO };
+        // Gentle happiness decay over time: ~0.08% per second, floor at 25%
+        newDoggo.happiness = Math.max(25, newDoggo.happiness - clampedDelta * 0.08);
+
+        if (newDoggo.isTamed && !newDoggo.heldItem) {
+          const newTimer = Math.max(0, newDoggo.retrievalTimerMs - clampedDelta * 1000);
+          if (newTimer <= 0) {
+            const isFics = isFicsmasActive(prevState);
+            const treasure = getRandomDoggoTreasure(isFics);
+            newDoggo.heldItem = {
+              itemId: treasure.itemId,
+              amount: treasure.amount,
+            };
+            newDoggo.retrievalTimerMs = getDoggoRetrievalTimeMs(newDoggo.happiness);
+            audio.playDoggoItemFound();
+            if (treasure.isHazard) {
+              addNotification(
+                '☢️ Radioactive Delivery!',
+                `${newDoggo.name} brought Nuclear Waste from the alien wild! Check the Doggo Sanctuary.`,
+                'power_trip'
+              );
+            } else {
+              const itemTitle = ALL_ITEMS[treasure.itemId]?.name || treasure.itemId;
+              addNotification(
+                '🐶 Doggo Gift Found!',
+                `${newDoggo.name} brought back ${treasure.amount}x ${itemTitle}! Check the Doggo Sanctuary.`,
+                'info'
+              );
+            }
+          } else {
+            newDoggo.retrievalTimerMs = newTimer;
+          }
+        }
+
         // 6. Update rolling production rates every 1 second
         if (now - lastRateUpdateRef.current >= 1000) {
           const durationMin = (now - lastRateUpdateRef.current) / 60000;
@@ -942,6 +1106,7 @@ export function useGameLoop() {
             consumption: Math.round(powerConsumption),
             isTripped,
           },
+          doggo: newDoggo,
           activeResearch: newActiveResearch,
           activeCrafting: newActiveCrafting,
           completedMAMNodes: newCompletedMAM,
@@ -1027,6 +1192,10 @@ export function useGameLoop() {
     buyShopItem,
     selectBiome,
     setFicsmasMode,
+    petDoggo,
+    feedDoggo,
+    collectDoggoItem,
+    renameDoggo,
     addNotification,
     dismissNotification,
   };

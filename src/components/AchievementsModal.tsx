@@ -25,6 +25,9 @@ import {
   Gift,
   TreePine,
   Star,
+  Heart,
+  Dog,
+  Smile,
 } from 'lucide-react';
 
 interface AchievementsModalProps {
@@ -52,6 +55,9 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Gift,
   TreePine,
   Star,
+  Heart,
+  Dog,
+  Smile,
 };
 
 export const AchievementsModal: React.FC<AchievementsModalProps> = ({

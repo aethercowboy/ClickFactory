@@ -372,4 +372,66 @@ export const ACHIEVEMENTS: AchievementDef[] = [
       };
     },
   },
+
+  // 19. Yes, You Can Pet the Dog! (First Pet)
+  {
+    id: 'pet_the_doggo',
+    title: 'Yes, You Can Pet the Dog!',
+    description: 'Give affection to your faithful native Lizard Doggo companion.',
+    category: 'special',
+    icon: 'Heart',
+    rewardCoupons: 1,
+    check: (state: GameSaveData) => (state.doggo?.petsCount || 0) >= 1 || (state.pioneerStats.doggoPets || 0) >= 1,
+    getProgress: (state: GameSaveData) => {
+      const pets = Math.max(state.doggo?.petsCount || 0, state.pioneerStats.doggoPets || 0);
+      return {
+        current: Math.min(1, pets),
+        target: 1,
+        formatted: pets >= 1 ? 'Doggo Petted!' : '0 / 1 pets',
+      };
+    },
+  },
+
+  // 20. Pioneer's Best Friend (Happiness & Pets)
+  {
+    id: 'doggo_best_friend',
+    title: "Pioneer's Best Friend",
+    description: 'Attain 100% Doggo happiness and pet your companion at least 25 times.',
+    category: 'special',
+    icon: 'Dog',
+    rewardCoupons: 3,
+    check: (state: GameSaveData) => {
+      const pets = Math.max(state.doggo?.petsCount || 0, state.pioneerStats.doggoPets || 0);
+      const happiness = state.doggo?.happiness || 0;
+      return pets >= 25 && happiness >= 100;
+    },
+    getProgress: (state: GameSaveData) => {
+      const pets = Math.max(state.doggo?.petsCount || 0, state.pioneerStats.doggoPets || 0);
+      const happiness = state.doggo?.happiness || 0;
+      return {
+        current: Math.min(25, pets),
+        target: 25,
+        formatted: `${Math.min(25, pets)} / 25 pets (${Math.floor(happiness)}% happy)`,
+      };
+    },
+  },
+
+  // 21. Good Boy Delivery (Doggo Retriever)
+  {
+    id: 'doggo_retriever',
+    title: 'Good Boy Delivery',
+    description: 'Collect 5 treasures or items retrieved by your Lizard Doggo from the alien wild.',
+    category: 'production',
+    icon: 'Smile',
+    rewardCoupons: 2,
+    check: (state: GameSaveData) => (state.doggo?.itemsRetrievedCount || 0) >= 5,
+    getProgress: (state: GameSaveData) => {
+      const count = state.doggo?.itemsRetrievedCount || 0;
+      return {
+        current: Math.min(5, count),
+        target: 5,
+        formatted: `${Math.min(5, count)} / 5 treasures collected`,
+      };
+    },
+  },
 ];
