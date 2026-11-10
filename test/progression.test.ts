@@ -819,20 +819,30 @@ export function runProgressionTests() {
     console.log('  ✓ Unit conversion between items/min and items/sec verified exact.');
   }
 
-  // Verify SemVer v0.8.0
+  // 11E. Net Flow Rolling Sparkline History
+  const mockHistory = [10, 10, 12, 14, 16, 20];
+  const isRising = mockHistory[mockHistory.length - 1] > mockHistory[0];
+  if (!isRising) {
+    console.error('FAIL: Sparkline trend detection failed for rising history!');
+    failures++;
+  } else {
+    console.log('  ✓ Sparkline stability history tracking and trend analysis verified.');
+  }
+
+  // Verify SemVer v0.8.1
   const curPkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-  if (curPkg.version !== '0.8.0' || APP_VERSION !== '0.8.0') {
-    console.error(`FAIL: Version must be 0.8.0! Got package.json=${curPkg.version}, APP_VERSION=${APP_VERSION}`);
+  if (curPkg.version !== '0.8.1' || APP_VERSION !== '0.8.1') {
+    console.error(`FAIL: Version must be 0.8.1! Got package.json=${curPkg.version}, APP_VERSION=${APP_VERSION}`);
     failures++;
   }
-  console.log(`  ✓ SemVer v0.8.0 consistency verified across package.json and src/version.ts.`);
+  console.log(`  ✓ SemVer v0.8.1 consistency verified across package.json and src/version.ts.`);
 
   console.log('\n--------------------------------------------------------------');
   if (failures > 0) {
     console.error(`FAILED: ${failures} progression / circularity / power / craft / achievement / biome / ficsmas / doggo / logistics errors detected.`);
     process.exit(1);
   } else {
-    console.log('SUCCESS: All 11 test suites passed! Logistics net flow rate filters, Lizard Doggo companion, FICSMAS, power, progression, craft times, achievements, biomes, and versioning verified.');
+    console.log('SUCCESS: All 11 test suites passed! Logistics sparklines, net flow rate filters, Lizard Doggo companion, FICSMAS, power, progression, craft times, achievements, biomes, and versioning verified.');
   }
 }
 

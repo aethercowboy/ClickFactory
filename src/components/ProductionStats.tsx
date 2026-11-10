@@ -16,7 +16,9 @@ import {
   MinusCircle,
   Filter,
   Check,
+  Activity,
 } from 'lucide-react';
+import { SparklineChart } from './SparklineChart';
 
 interface ProductionStatsProps {
   gameState: GameSaveData;
@@ -100,6 +102,7 @@ export const ProductionStats: React.FC<ProductionStatsProps> = ({
       const nSec = nMin / 60;
 
       const hasActivity = stock > 0 || pMin > 0 || cMin > 0;
+      const history = productionRates.netHistory?.[item.id] || [];
 
       return {
         item,
@@ -111,9 +114,10 @@ export const ProductionStats: React.FC<ProductionStatsProps> = ({
         consSec: cSec,
         netSec: nSec,
         hasActivity,
+        history,
       };
     });
-  }, [gameState.inventory, producedPerMin, consumedPerMin, netPerMin]);
+  }, [gameState.inventory, producedPerMin, consumedPerMin, netPerMin, productionRates.netHistory]);
 
   // Aggregate breakdown metrics across active items
   const metrics = useMemo(() => {
@@ -706,10 +710,17 @@ export const ProductionStats: React.FC<ProductionStatsProps> = ({
                     )}
                   </div>
                 </th>
+
+                <th className="py-2.5 px-3 text-slate-400 select-none">
+                  <div className="flex items-center gap-1.5">
+                    <Activity className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>Stability Trend</span>
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#1b222a]">
-              {filteredItems.map(({ item, stock, prodMin, consMin, netMin, prodSec, consSec, netSec }) => {
+              {filteredItems.map(({ item, stock, prodMin, consMin, netMin, prodSec, consSec, netSec, history }) => {
                 const primaryProd = unit === 'sec' ? prodSec : prodMin;
                 const secondaryProd = unit === 'sec' ? prodMin : prodSec;
                 const primaryCons = unit === 'sec' ? consSec : consMin;
@@ -823,13 +834,22 @@ export const ProductionStats: React.FC<ProductionStatsProps> = ({
                         </div>
                       )}
                     </td>
+
+                    <td className="py-3 px-3">
+                      <SparklineChart
+                        itemId={item.id}
+                        history={history}
+                        currentNetMin={netMin}
+                        unit={unit}
+                      />
+                    </td>
                   </tr>
                 );
               })}
 
               {filteredItems.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-slate-500 space-y-3">
+                  <td colSpan={6} className="py-12 text-center text-slate-500 space-y-3">
                     <p className="text-sm">No components match the current logistics flow filters.</p>
                     <div className="flex items-center justify-center gap-2">
                       {isNetFilterActive && (

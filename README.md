@@ -1,7 +1,7 @@
 # ClickFactory (FICSIT Pioneer: Factory Automation)
 
 [![Play Live](https://img.shields.io/badge/Play%20Live-aethercowboy.github.io%2FClickFactory-orange?style=for-the-badge&logo=google-chrome&logoColor=white)](https://aethercowboy.github.io/ClickFactory)
-[![Version](https://img.shields.io/badge/version-0.8.0-blue?style=for-the-badge)](./package.json)
+[![Version](https://img.shields.io/badge/version-0.8.1-blue?style=for-the-badge)](./package.json)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green?style=for-the-badge)](./LICENSE)
 
 Play the live game directly in your browser:  
@@ -162,6 +162,11 @@ npm test
 
 ## Changelog
 
+### v0.8.1
+- **Recharts Net Flow Sparklines & Stability Trend Analysis**: Added compact, animated Recharts AreaChart sparklines to each row of the Logistics tab to visualize rolling net flow rate stability over time.
+- **Dynamic Color-Coding & Direction Indicators**: Sparklines dynamically render in emerald (surplus), rose (deficit), amber (fluctuating across zero), or slate (neutral), with stability badges indicating *Stable*, *Rising ↗*, *Falling ↘*, or *Fluctuating ∿*.
+- **Interactive Micro-Tooltips & Zero Reference Line**: Hovering over any point in the sparkline reveals the historical net rate with active unit scaling (`/min` or `/sec`), accompanied by a dashed zero reference line.
+
 ### v0.8.0
 - **Logistics Net Flow Rate Filter & Bottleneck Detection**: Added comprehensive flow rate filtering on the Logistics tab to easily diagnose deficits, stagnant components, and throughput thresholds.
 - **Arbitrary Rate Input & Interactive Scrubbing Slider**: Type any arbitrary numeric value (positive, negative, or decimal) or scrub continuously with a dynamic range slider to show components with net flow less than or equal to that rate.
@@ -224,7 +229,7 @@ npm test
 
 This project adheres strictly to [Semantic Versioning (SemVer)](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
-- Current Version: **v0.8.0** (displayed in `package.json`, `src/version.ts`, top navigation bar, and settings modal).
+- Current Version: **v0.8.1** (displayed in `package.json`, `src/version.ts`, top navigation bar, and settings modal).
 - When submitting features, enhancements, or bugfixes, see [AGENTS.md](./AGENTS.md) for required version bump procedures and testing rules.
 
 ---

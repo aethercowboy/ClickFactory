@@ -25,6 +25,7 @@ export interface ProductionRates {
   producedPerMin: Record<ItemId, number>;
   consumedPerMin: Record<ItemId, number>;
   netPerMin: Record<ItemId, number>;
+  netHistory?: Record<ItemId, number[]>;
 }
 
 export function useGameLoop() {
@@ -34,6 +35,7 @@ export function useGameLoop() {
     producedPerMin: {} as any,
     consumedPerMin: {} as any,
     netPerMin: {} as any,
+    netHistory: {} as any,
   });
 
   const stateRef = useRef(gameState);
@@ -42,6 +44,7 @@ export function useGameLoop() {
   // Rate accumulation trackers over 1-second rolling windows
   const ratesProducedRef = useRef<Record<ItemId, number>>({} as any);
   const ratesConsumedRef = useRef<Record<ItemId, number>>({} as any);
+  const ratesHistoryRef = useRef<Record<ItemId, number[]>>({} as any);
   const lastRateUpdateRef = useRef<number>(Date.now());
 
   const dismissNotification = useCallback((id: string) => {
@@ -1080,17 +1083,26 @@ export function useGameLoop() {
           const producedPerMin: Record<ItemId, number> = {} as any;
           const consumedPerMin: Record<ItemId, number> = {} as any;
           const netPerMin: Record<ItemId, number> = {} as any;
+          const netHistory: Record<ItemId, number[]> = {} as any;
 
           Object.keys(ALL_ITEMS).forEach(k => {
             const key = k as ItemId;
             const prod = (ratesProducedRef.current[key] || 0) / durationMin;
             const cons = (ratesConsumedRef.current[key] || 0) / durationMin;
-            producedPerMin[key] = Math.round(prod * 10) / 10;
-            consumedPerMin[key] = Math.round(cons * 10) / 10;
-            netPerMin[key] = Math.round((prod - cons) * 10) / 10;
+            const roundedProd = Math.round(prod * 10) / 10;
+            const roundedCons = Math.round(cons * 10) / 10;
+            const roundedNet = Math.round((prod - cons) * 10) / 10;
+            producedPerMin[key] = roundedProd;
+            consumedPerMin[key] = roundedCons;
+            netPerMin[key] = roundedNet;
+
+            const prev = ratesHistoryRef.current[key] || [];
+            const next = [...prev, roundedNet].slice(-24); // Keep last 24 readings (~24s window)
+            ratesHistoryRef.current[key] = next;
+            netHistory[key] = next;
           });
 
-          setProductionRates({ producedPerMin, consumedPerMin, netPerMin });
+          setProductionRates({ producedPerMin, consumedPerMin, netPerMin, netHistory });
           ratesProducedRef.current = {} as any;
           ratesConsumedRef.current = {} as any;
           lastRateUpdateRef.current = now;
