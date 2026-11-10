@@ -1,7 +1,7 @@
 # ClickFactory (FICSIT Pioneer: Factory Automation)
 
 [![Play Live](https://img.shields.io/badge/Play%20Live-aethercowboy.github.io%2FClickFactory-orange?style=for-the-badge&logo=google-chrome&logoColor=white)](https://aethercowboy.github.io/ClickFactory)
-[![Version](https://img.shields.io/badge/version-0.8.1-blue?style=for-the-badge)](./package.json)
+[![Version](https://img.shields.io/badge/version-0.8.2-blue?style=for-the-badge)](./package.json)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green?style=for-the-badge)](./LICENSE)
 
 Play the live game directly in your browser:  
@@ -162,6 +162,11 @@ npm test
 
 ## Changelog
 
+### v0.8.2
+- **CI / Pipeline Build Fix for Recharts (`react-is`)**: Added missing `react-is` dependency required by Recharts module bundling (`recharts/es6/util/ReactUtils.js`), resolving the Rolldown/Vite production build failure in GitHub Actions (`CI=true npm run build`).
+- **Synchronized Lockfiles**: Fully reconciled `package-lock.json` and `bun.lock` with `recharts` and `react-is` for deterministic CI clean installs (`npm ci`).
+- **Vite Config Modernization**: Updated `vite.config.ts` path resolution to use `import.meta.dirname ?? process.cwd()`, suppressing native config loader deprecation warnings.
+
 ### v0.8.1
 - **Recharts Net Flow Sparklines & Stability Trend Analysis**: Added compact, animated Recharts AreaChart sparklines to each row of the Logistics tab to visualize rolling net flow rate stability over time.
 - **Dynamic Color-Coding & Direction Indicators**: Sparklines dynamically render in emerald (surplus), rose (deficit), amber (fluctuating across zero), or slate (neutral), with stability badges indicating *Stable*, *Rising ↗*, *Falling ↘*, or *Fluctuating ∿*.
@@ -229,7 +234,7 @@ npm test
 
 This project adheres strictly to [Semantic Versioning (SemVer)](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
-- Current Version: **v0.8.1** (displayed in `package.json`, `src/version.ts`, top navigation bar, and settings modal).
+- Current Version: **v0.8.2** (displayed in `package.json`, `src/version.ts`, top navigation bar, and settings modal).
 - When submitting features, enhancements, or bugfixes, see [AGENTS.md](./AGENTS.md) for required version bump procedures and testing rules.
 
 ---

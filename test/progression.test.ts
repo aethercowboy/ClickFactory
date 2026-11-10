@@ -829,13 +829,14 @@ export function runProgressionTests() {
     console.log('  ✓ Sparkline stability history tracking and trend analysis verified.');
   }
 
-  // Verify SemVer v0.8.1
-  const curPkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-  if (curPkg.version !== '0.8.1' || APP_VERSION !== '0.8.1') {
-    console.error(`FAIL: Version must be 0.8.1! Got package.json=${curPkg.version}, APP_VERSION=${APP_VERSION}`);
+  // Verify SemVer v0.8.2
+  const pkgPath = fs.existsSync('package.json') ? 'package.json' : new URL('../package.json', import.meta.url).pathname;
+  const curPkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+  if (curPkg.version !== '0.8.2' || APP_VERSION !== '0.8.2') {
+    console.error(`FAIL: Version must be 0.8.2! Got package.json=${curPkg.version}, APP_VERSION=${APP_VERSION}`);
     failures++;
   }
-  console.log(`  ✓ SemVer v0.8.1 consistency verified across package.json and src/version.ts.`);
+  console.log(`  ✓ SemVer v0.8.2 consistency verified across package.json and src/version.ts.`);
 
   console.log('\n--------------------------------------------------------------');
   if (failures > 0) {
