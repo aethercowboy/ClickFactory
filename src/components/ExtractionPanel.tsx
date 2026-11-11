@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { GameSaveData, ItemId } from '../types/game';
 import { ALL_ITEMS, ALL_BUILDINGS } from '../data/items';
-import { Pickaxe, Drill, Droplet, Sparkles, Plus, Check, Compass, Gift } from 'lucide-react';
+import { Pickaxe, Drill, Droplet, Sparkles, Plus, Check, Compass, Gift, Bug, Crosshair } from 'lucide-react';
 import { audio } from '../utils/audio';
 import { getBiomeDef } from '../data/biomes';
 import { isFicsmasActive } from '../utils/ficsmas';
@@ -79,6 +79,14 @@ const MINING_NODES: MiningNodeConfig[] = [
     particleColor: '#eab308',
   },
   {
+    id: 'alien_remains',
+    name: 'Hostile Alien Organisms',
+    purity: 'Normal',
+    icon: 'Bug',
+    gradient: 'from-pink-950/40 via-purple-950/30 to-[#141920] border-pink-600/50',
+    particleColor: '#ec4899',
+  },
+  {
     id: 'raw_quartz',
     name: 'Quartz Crystal Cluster',
     purity: 'Normal',
@@ -109,6 +117,14 @@ const MINING_NODES: MiningNodeConfig[] = [
     icon: 'Radioactive',
     gradient: 'from-green-950/50 to-black border-green-500/50',
     particleColor: '#22c55e',
+  },
+  {
+    id: 'sam_ore',
+    name: 'S.A.M. Ore Geode',
+    purity: 'Impure',
+    icon: 'Sparkles',
+    gradient: 'from-purple-950/50 via-indigo-950/40 to-[#141920] border-purple-500/50',
+    particleColor: '#a855f7',
   },
 ];
 
@@ -280,7 +296,15 @@ export const ExtractionPanel: React.FC<ExtractionPanelProps> = ({
                   className="w-full py-2.5 px-4 bg-[#1f2732] hover:bg-[#fa9549] text-white hover:text-black font-semibold text-xs rounded-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 group shadow"
                 >
                   <Pickaxe className="w-4 h-4 text-[#fa9549] group-hover:text-black transition-colors" />
-                  <span>Manual Extract (+{clickMultiplier})</span>
+                  <span>
+                    {node.id === 'alien_remains'
+                      ? `Hunt Hostile Fauna (+${clickMultiplier})`
+                      : node.id === 'leaves'
+                      ? `Forage Foliage (+${clickMultiplier})`
+                      : node.id === 'ficsmas_gift'
+                      ? `Collect Gift Drop (+${clickMultiplier})`
+                      : `Manual Extract (+${clickMultiplier})`}
+                  </span>
                 </button>
 
                 {/* Quick Deploy Stationed Extractor */}

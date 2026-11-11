@@ -1,7 +1,7 @@
 # ClickFactory (FICSIT Pioneer: Factory Automation)
 
 [![Play Live](https://img.shields.io/badge/Play%20Live-aethercowboy.github.io%2FClickFactory-orange?style=for-the-badge&logo=google-chrome&logoColor=white)](https://aethercowboy.github.io/ClickFactory)
-[![Version](https://img.shields.io/badge/version-0.9.0-blue?style=for-the-badge)](./package.json)
+[![Version](https://img.shields.io/badge/version-0.9.1-blue?style=for-the-badge)](./package.json)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green?style=for-the-badge)](./LICENSE)
 
 Play the live game directly in your browser:  
@@ -162,6 +162,13 @@ npm test
 
 ## Changelog
 
+### v0.9.1
+- **Alien Remains & SAM Ore Extraction**: Restored access to Alien Remains by adding a dedicated *Hostile Alien Organisms* survey node to the Extraction & Mining tab (unlocked via Tier 1 Field Research) with manual fauna hunting (`Hunt Hostile Fauna`) and automated harvesting support.
+- **S.A.M. Ore Geode Survey Node**: Added dedicated planetary deposit card for S.A.M. Ore in the Extraction tab (unlocked via Tier 9 Quantum Tech).
+- **Miner Compatibility**: Added `alien_remains` to `SOLID_MINERAL_ORES` so Portable Miners and Miner Mk.1–3 can automate creature carapace collection.
+- **Save State Migration**: Automatically ensures `unlockedOres` contains all ores granted by already-completed milestones on game load.
+- **Automated Verification**: Added Test 12F verifying Alien Remains and SAM Ore accessibility via mechanical extractors and manual harvesting.
+
 ### v0.9.0
 - **Automation Modal Device Fleet Counts**: Each machine architecture and target resource option now displays the active device count deployed across your factory (e.g. *Iron Ore Extractors x5*, *Constructors x4*).
 - **Zero-Ownership Highlighting**: Prominently highlights devices and resource nodes you have 0 of with glowing amber badges (*0 Owned / 0 Deployed*) and accent borders, making factory automation gaps immediately apparent.
@@ -244,7 +251,7 @@ npm test
 
 This project adheres strictly to [Semantic Versioning (SemVer)](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
-- Current Version: **v0.9.0** (displayed in `package.json`, `src/version.ts`, top navigation bar, and settings modal).
+- Current Version: **v0.9.1** (displayed in `package.json`, `src/version.ts`, top navigation bar, and settings modal).
 - When submitting features, enhancements, or bugfixes, see [AGENTS.md](./AGENTS.md) for required version bump procedures and testing rules.
 
 ---

@@ -911,14 +911,25 @@ export function runProgressionTests() {
     console.log('  ✓ Zero-ownership device identification verified for modal highlighting.');
   }
 
-  // Verify SemVer v0.9.0
+  // 12F. Alien Remains & SAM Ore accessibility
+  if (!isValidExtractorTarget('miner_mk1', 'alien_remains') || !isValidExtractorTarget('portable_miner', 'alien_remains')) {
+    console.error('FAIL: Mechanical drills must be able to harvest alien_remains!');
+    failures++;
+  } else if (!isValidExtractorTarget('miner_mk1', 'sam_ore')) {
+    console.error('FAIL: Mechanical drills must be able to mine sam_ore!');
+    failures++;
+  } else {
+    console.log('  ✓ Alien Remains and SAM Ore verified accessible for automated mining and manual harvesting.');
+  }
+
+  // Verify SemVer v0.9.1
   const pkgPath = fs.existsSync('package.json') ? 'package.json' : new URL('../package.json', import.meta.url).pathname;
   const curPkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-  if (curPkg.version !== '0.9.0' || APP_VERSION !== '0.9.0') {
-    console.error(`FAIL: Version must be 0.9.0! Got package.json=${curPkg.version}, APP_VERSION=${APP_VERSION}`);
+  if (curPkg.version !== '0.9.1' || APP_VERSION !== '0.9.1') {
+    console.error(`FAIL: Version must be 0.9.1! Got package.json=${curPkg.version}, APP_VERSION=${APP_VERSION}`);
     failures++;
   }
-  console.log(`  ✓ SemVer v0.9.0 consistency verified across package.json and src/version.ts.`);
+  console.log(`  ✓ SemVer v0.9.1 consistency verified across package.json and src/version.ts.`);
 
   console.log('\n--------------------------------------------------------------');
   if (failures > 0) {

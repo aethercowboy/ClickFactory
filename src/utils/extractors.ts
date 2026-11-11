@@ -14,6 +14,7 @@ export const SOLID_MINERAL_ORES: ItemId[] = [
   'uranium',
   'sam_ore',
   'leaves',
+  'alien_remains',
 ];
 
 /**

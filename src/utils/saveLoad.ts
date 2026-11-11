@@ -1,6 +1,7 @@
 import { GameSaveData, ItemId, LizardDoggoState } from '../types/game';
 import { isValidExtractorTarget, getValidOresForExtractor } from './extractors';
 import { ALL_BUILDINGS } from '../data/items';
+import { ALL_MILESTONES } from '../data/milestones';
 
 const SAVE_KEY = 'FICSIT_PIONEER_SAVE_V1';
 
@@ -164,10 +165,25 @@ export function loadGame(): GameSaveData {
       }
       return m;
     });
+    let restoredOres: ItemId[] = parsed.unlockedOres || INITIAL_SAVE.unlockedOres;
+    if (parsed.completedMilestones && Array.isArray(parsed.completedMilestones)) {
+      parsed.completedMilestones.forEach((mId: string) => {
+        const ms = ALL_MILESTONES.find(m => m.id === mId);
+        if (ms?.unlocks?.ores) {
+          ms.unlocks.ores.forEach(o => {
+            if (!restoredOres.includes(o)) {
+              restoredOres = [...restoredOres, o];
+            }
+          });
+        }
+      });
+    }
+
     return {
       ...INITIAL_SAVE,
       ...parsed,
       machines: sanitizedMachines,
+      unlockedOres: restoredOres,
       inventory: { ...INITIAL_SAVE.inventory, ...parsed.inventory },
       unlockedFeatures: parsed.unlockedFeatures || [],
       unlockedAchievements: parsed.unlockedAchievements || [],
