@@ -14,8 +14,12 @@ import {
   AlertTriangle,
   ArrowRight,
   Boxes,
+  Check,
+  CheckCircle2,
 } from 'lucide-react';
 import { audio } from '../utils/audio';
+import { getValidOresForExtractor, isValidExtractorTarget } from '../utils/extractors';
+import { isFicsmasActive } from '../utils/ficsmas';
 
 interface FactoryAutomationProps {
   gameState: GameSaveData;
@@ -37,6 +41,8 @@ export const FactoryAutomation: React.FC<FactoryAutomationProps> = ({
   const [deployBuildingId, setDeployBuildingId] = useState<string>('constructor_machine');
   const [deployRecipeId, setDeployRecipeId] = useState<string>('');
   const [deployOreId, setDeployOreId] = useState<ItemId>('iron_ore');
+
+  const isHolidayActive = isFicsmasActive(gameState);
 
   // Filtered active machines
   const filteredMachines = useMemo(() => {
@@ -64,6 +70,55 @@ export const FactoryAutomation: React.FC<FactoryAutomationProps> = ({
 
   const selectedDeployBuilding = ALL_BUILDINGS[deployBuildingId] || unlockedBuildingsList[0];
 
+  // Overall building count map (how many of each architecture the player owns)
+  const buildingCountMap = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const m of gameState.machines) {
+      counts[m.buildingId] = (counts[m.buildingId] || 0) + m.count;
+    }
+    return counts;
+  }, [gameState.machines]);
+
+  // Extractor counts per ore node: counts[buildingId][oreId] and total[oreId]
+  const { extractorOreCountMap, totalOreExtractorCountMap } = useMemo(() => {
+    const byBuilding: Record<string, Partial<Record<ItemId, number>>> = {};
+    const totalByOre: Partial<Record<ItemId, number>> = {};
+
+    for (const m of gameState.machines) {
+      const b = ALL_BUILDINGS[m.buildingId];
+      if (b && b.category === 'extractor') {
+        const ore = (m.targetOre || (m.buildingId === 'ficsmas_gift_tree' ? 'ficsmas_gift' : undefined)) as ItemId | undefined;
+        if (ore) {
+          if (!byBuilding[m.buildingId]) byBuilding[m.buildingId] = {};
+          byBuilding[m.buildingId][ore] = (byBuilding[m.buildingId][ore] || 0) + m.count;
+          totalByOre[ore] = (totalByOre[ore] || 0) + m.count;
+        }
+      }
+    }
+    return { extractorOreCountMap: byBuilding, totalOreExtractorCountMap: totalByOre };
+  }, [gameState.machines]);
+
+  // Recipe counts per building: counts[buildingId][recipeId]
+  const machineRecipeCountMap = useMemo(() => {
+    const byBuilding: Record<string, Record<string, number>> = {};
+    for (const m of gameState.machines) {
+      if (m.recipeId) {
+        if (!byBuilding[m.buildingId]) byBuilding[m.buildingId] = {};
+        byBuilding[m.buildingId][m.recipeId] = (byBuilding[m.buildingId][m.recipeId] || 0) + m.count;
+      }
+    }
+    return byBuilding;
+  }, [gameState.machines]);
+
+  // Permissible ores for the selected extractor architecture
+  const availableOresForSelectedExtractor = useMemo(() => {
+    if (!selectedDeployBuilding || selectedDeployBuilding.category !== 'extractor') return [];
+    const validOres = getValidOresForExtractor(selectedDeployBuilding.id);
+    return validOres.filter(
+      oreId => gameState.unlockedOres.includes(oreId) || (oreId === 'ficsmas_gift' && isHolidayActive)
+    );
+  }, [selectedDeployBuilding, gameState.unlockedOres, isHolidayActive]);
+
   // Recipes suitable for the selected building
   const suitableRecipes = useMemo(() => {
     if (!selectedDeployBuilding || !selectedDeployBuilding.machineType) return [];
@@ -73,9 +128,34 @@ export const FactoryAutomation: React.FC<FactoryAutomationProps> = ({
     );
   }, [selectedDeployBuilding, gameState.unlockedRecipes]);
 
+  // Synchronize ore selection whenever switching building architectures
+  const handleSelectBuildingArchitecture = (buildingId: string) => {
+    setDeployBuildingId(buildingId);
+    setDeployRecipeId('');
+    const b = ALL_BUILDINGS[buildingId];
+    if (b && b.category === 'extractor') {
+      const valid = getValidOresForExtractor(b.id).filter(
+        o => gameState.unlockedOres.includes(o) || (o === 'ficsmas_gift' && isHolidayActive)
+      );
+      if (!valid.includes(deployOreId)) {
+        setDeployOreId(valid[0] || 'iron_ore');
+      }
+    }
+  };
+
   const handleOpenDeploy = (buildingId?: string) => {
+    const targetBuildingId = buildingId || deployBuildingId;
     if (buildingId) {
       setDeployBuildingId(buildingId);
+    }
+    const b = ALL_BUILDINGS[targetBuildingId] || unlockedBuildingsList[0];
+    if (b && b.category === 'extractor') {
+      const valid = getValidOresForExtractor(b.id).filter(
+        o => gameState.unlockedOres.includes(o) || (o === 'ficsmas_gift' && isHolidayActive)
+      );
+      if (!valid.includes(deployOreId)) {
+        setDeployOreId(valid[0] || 'iron_ore');
+      }
     }
     setShowDeployModal(true);
     audio.playCraftPress();
@@ -84,12 +164,20 @@ export const FactoryAutomation: React.FC<FactoryAutomationProps> = ({
   const handleConfirmDeploy = () => {
     if (!selectedDeployBuilding) return;
     if (selectedDeployBuilding.category === 'extractor') {
-      onBuildMachine(selectedDeployBuilding.id, undefined, deployOreId);
+      // Validate extractor target compatibility
+      let targetToDeploy = deployOreId;
+      if (!isValidExtractorTarget(selectedDeployBuilding.id, targetToDeploy)) {
+        const valid = getValidOresForExtractor(selectedDeployBuilding.id);
+        const fallback = valid.find(o => gameState.unlockedOres.includes(o)) || valid[0];
+        if (fallback) {
+          targetToDeploy = fallback;
+        }
+      }
+      onBuildMachine(selectedDeployBuilding.id, undefined, targetToDeploy);
     } else {
-      if (!deployRecipeId && suitableRecipes[0]) {
-        onBuildMachine(selectedDeployBuilding.id, suitableRecipes[0].id);
-      } else {
-        onBuildMachine(selectedDeployBuilding.id, deployRecipeId);
+      const targetRecipe = deployRecipeId || suitableRecipes[0]?.id;
+      if (targetRecipe) {
+        onBuildMachine(selectedDeployBuilding.id, targetRecipe);
       }
     }
     setShowDeployModal(false);
@@ -224,13 +312,18 @@ export const FactoryAutomation: React.FC<FactoryAutomationProps> = ({
                   </div>
 
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-industrial text-base font-bold text-white tracking-wide">
-                        {building.name}
+                        {isExtractor && targetItem ? `${targetItem.name} Extractor` : building.name}
                       </h3>
                       <span className="text-xs font-mono-numbers px-2 py-0.5 rounded bg-[#1f2732] text-[#fa9549] font-bold">
                         x{machine.count}
                       </span>
+                      {isExtractor && targetItem && (
+                        <span className="text-[10px] text-slate-400 font-mono-numbers bg-[#161c24] border border-[#242c36] px-1.5 py-0.5 rounded">
+                          {building.name}
+                        </span>
+                      )}
                       {recipe?.isAlternate && (
                         <span className="text-[10px] text-amber-400 bg-amber-950/60 px-1.5 py-0.2 rounded font-mono-numbers">
                           ALT
@@ -390,83 +483,179 @@ export const FactoryAutomation: React.FC<FactoryAutomationProps> = ({
 
             {/* Select Machine Type */}
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-300 font-mono-numbers">
-                Select Machine Architecture:
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-slate-300 font-mono-numbers">
+                  Select Machine Architecture:
+                </label>
+                <span className="text-[11px] font-mono-numbers text-slate-500">
+                  {unlockedBuildingsList.length} architecture{unlockedBuildingsList.length === 1 ? '' : 's'} unlocked
+                </span>
+              </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {unlockedBuildingsList.map(b => (
-                  <button
-                    key={b.id}
-                    onClick={() => {
-                      setDeployBuildingId(b.id);
-                      setDeployRecipeId('');
-                    }}
-                    className={`p-2.5 rounded-lg border text-left transition-all ${
-                      deployBuildingId === b.id
-                        ? 'border-[#fa9549] bg-[#1e2530] text-white shadow'
-                        : 'border-[#242c36] bg-[#0e1216] text-slate-400 hover:text-white hover:bg-[#161c24]'
-                    }`}
-                  >
-                    <div className="font-industrial text-xs font-bold tracking-wide">
-                      {b.name}
-                    </div>
-                    <div className="text-[10px] text-slate-500 font-mono-numbers mt-0.5">
-                      {b.powerConsumption} MW · Tier {b.tierUnlocked}
-                    </div>
-                  </button>
-                ))}
+                {unlockedBuildingsList.map(b => {
+                  const count = buildingCountMap[b.id] || 0;
+                  const isNone = count === 0;
+                  const isSelected = deployBuildingId === b.id;
+
+                  return (
+                    <button
+                      key={b.id}
+                      onClick={() => handleSelectBuildingArchitecture(b.id)}
+                      className={`p-2.5 rounded-lg border text-left transition-all relative flex flex-col justify-between ${
+                        isSelected
+                          ? 'border-[#fa9549] bg-[#1e2530] text-white shadow-lg ring-1 ring-[#fa9549]/50'
+                          : isNone
+                          ? 'border-amber-500/40 bg-gradient-to-b from-[#181d24] to-[#0e1216] text-slate-300 hover:border-amber-400 hover:text-white'
+                          : 'border-[#242c36] bg-[#0e1216] text-slate-400 hover:text-white hover:bg-[#161c24]'
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-start justify-between gap-1">
+                          <div className="font-industrial text-xs font-bold tracking-wide truncate">
+                            {b.name}
+                          </div>
+                          {isNone ? (
+                            <span className="text-[9px] font-mono-numbers font-bold text-amber-300 bg-amber-500/25 border border-amber-500/60 px-1.5 py-0.5 rounded shrink-0 shadow-sm shadow-amber-950">
+                              0 Owned
+                            </span>
+                          ) : (
+                            <span className="text-[9px] font-mono-numbers font-bold text-cyan-300 bg-cyan-950/70 border border-cyan-800/60 px-1.5 py-0.5 rounded shrink-0">
+                              x{count}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[10px] text-slate-500 font-mono-numbers mt-0.5 truncate">
+                          {b.powerConsumption} MW · Tier {b.tierUnlocked}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            {/* If Extractor, choose Target Ore Node */}
+            {/* If Extractor, choose Target Ore Node (restricted to engineered types) */}
             {selectedDeployBuilding?.category === 'extractor' ? (
               <div className="space-y-2">
-                <label className="text-xs font-semibold text-slate-300 font-mono-numbers">
-                  Assign Target Mineral Node:
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-slate-300 font-mono-numbers">
+                    Assign Target Mineral Node:
+                  </label>
+                  <span className="text-[11px] font-mono-numbers text-amber-400/90 font-medium">
+                    {selectedDeployBuilding.id === 'water_extractor'
+                      ? '💧 Water Reservoir Only'
+                      : selectedDeployBuilding.id === 'oil_extractor'
+                      ? '🛢️ Crude Oil Wellhead Only'
+                      : selectedDeployBuilding.id === 'ficsmas_gift_tree'
+                      ? '🎁 Holiday Orbit Gift Drop Only'
+                      : '⛏️ Solid Mineral Outcrops Only'}
+                  </span>
+                </div>
+
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {gameState.unlockedOres.map(oreId => {
+                  {availableOresForSelectedExtractor.map(oreId => {
                     const ore = ALL_ITEMS[oreId];
                     if (!ore) return null;
+                    const isSelected = deployOreId === oreId;
+                    const thisModelCount = extractorOreCountMap[selectedDeployBuilding.id]?.[oreId] || 0;
+                    const isNone = thisModelCount === 0;
+
                     return (
                       <button
                         key={oreId}
                         onClick={() => setDeployOreId(oreId)}
-                        className={`p-2 rounded-lg border text-left font-mono-numbers text-xs transition-all ${
-                          deployOreId === oreId
-                            ? 'border-[#fa9549] bg-[#1e2530] text-white'
-                            : 'border-[#242c36] bg-[#0e1216] text-slate-400 hover:text-white'
+                        className={`p-2.5 rounded-lg border text-left font-mono-numbers text-xs transition-all flex flex-col justify-between ${
+                          isSelected
+                            ? 'border-[#fa9549] bg-[#1e2530] text-white shadow-md ring-1 ring-[#fa9549]/40'
+                            : isNone
+                            ? 'border-amber-500/40 bg-gradient-to-b from-[#181d24] to-[#0f1318] text-slate-300 hover:border-amber-400 hover:text-white'
+                            : 'border-[#242c36] bg-[#0e1216] text-slate-400 hover:text-white hover:bg-[#161c24]'
                         }`}
                       >
-                        <span className="font-medium">{ore.name}</span>
+                        <div className="flex items-start justify-between gap-1 w-full">
+                          <div className="flex items-center gap-1.5 font-medium truncate">
+                            <div
+                              className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm"
+                              style={{ backgroundColor: ore.color }}
+                            />
+                            <span className="truncate">{ore.name}</span>
+                          </div>
+                          {isNone ? (
+                            <span className="text-[9px] font-bold text-amber-300 bg-amber-500/25 border border-amber-500/60 px-1 py-0.5 rounded shrink-0 shadow-sm shadow-amber-950">
+                              0 Deployed
+                            </span>
+                          ) : (
+                            <span className="text-[9px] font-bold text-emerald-300 bg-emerald-950/80 border border-emerald-700/60 px-1 py-0.5 rounded shrink-0">
+                              x{thisModelCount}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[10px] text-slate-500 mt-1 truncate">
+                          {isNone ? (
+                            <span className="text-amber-300/80">0 {ore.name} Extractors</span>
+                          ) : (
+                            <span>{ore.name} Extractors: <strong className="text-white">x{thisModelCount}</strong></span>
+                          )}
+                        </div>
                       </button>
                     );
                   })}
                 </div>
+
+                {availableOresForSelectedExtractor.length === 0 && (
+                  <div className="p-4 bg-amber-950/20 border border-amber-600/40 rounded-lg text-center text-xs text-amber-300 font-mono-numbers">
+                    No compatible resource deposits are currently surveyed for this extractor. Unlock milestones to discover compatible deposits!
+                  </div>
+                )}
               </div>
             ) : (
               /* If Production Machine, choose Recipe */
               <div className="space-y-2">
-                <label className="text-xs font-semibold text-slate-300 font-mono-numbers">
-                  Assign Blueprint Recipe:
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-slate-300 font-mono-numbers">
+                    Assign Blueprint Recipe:
+                  </label>
+                  <span className="text-[11px] font-mono-numbers text-slate-400">
+                    {suitableRecipes.length} blueprint{suitableRecipes.length === 1 ? '' : 's'} available
+                  </span>
+                </div>
+
                 <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1">
                   {suitableRecipes.map(r => {
                     const isSelected = (deployRecipeId || suitableRecipes[0]?.id) === r.id;
+                    const count = machineRecipeCountMap[selectedDeployBuilding.id]?.[r.id] || 0;
+                    const isNone = count === 0;
+
                     return (
                       <button
                         key={r.id}
                         onClick={() => setDeployRecipeId(r.id)}
                         className={`w-full p-2.5 rounded-lg border text-left flex items-center justify-between text-xs font-mono-numbers transition-all ${
                           isSelected
-                            ? 'border-[#fa9549] bg-[#1e2530] text-white'
-                            : 'border-[#242c36] bg-[#0e1216] text-slate-400 hover:text-white'
+                            ? 'border-[#fa9549] bg-[#1e2530] text-white shadow-md ring-1 ring-[#fa9549]/40'
+                            : isNone
+                            ? 'border-amber-500/35 bg-gradient-to-r from-[#171b22] to-[#0f1217] text-slate-300 hover:border-amber-400 hover:text-white'
+                            : 'border-[#242c36] bg-[#0e1216] text-slate-400 hover:text-white hover:bg-[#161c24]'
                         }`}
                       >
-                        <span className="font-semibold">{r.name}</span>
-                        <span className="text-slate-500">
-                          {r.inputs.map(i => `${i.amount} ${ALL_ITEMS[i.itemId]?.name}`).join(' + ')}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-white">{r.name}</span>
+                          <span className="text-slate-500 text-[11px]">
+                            ({r.inputs.map(i => `${i.amount} ${ALL_ITEMS[i.itemId]?.name}`).join(' + ')})
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          {isNone ? (
+                            <span className="text-[9px] font-bold text-amber-300 bg-amber-500/25 border border-amber-500/60 px-1.5 py-0.5 rounded shadow-sm shadow-amber-950">
+                              0 Active (None)
+                            </span>
+                          ) : (
+                            <span className="text-[9px] font-bold text-cyan-300 bg-cyan-950/70 border border-cyan-800/60 px-1.5 py-0.5 rounded">
+                              x{count} Active
+                            </span>
+                          )}
+                        </div>
                       </button>
                     );
                   })}
@@ -479,6 +668,75 @@ export const FactoryAutomation: React.FC<FactoryAutomationProps> = ({
                 </div>
               </div>
             )}
+
+            {/* Active Device Fleet Status Banner */}
+            {(() => {
+              const isExtractor = selectedDeployBuilding?.category === 'extractor';
+              const targetRecipe = !isExtractor
+                ? (ALL_RECIPES.find(r => r.id === (deployRecipeId || suitableRecipes[0]?.id)) || suitableRecipes[0])
+                : null;
+
+              const activeCount = isExtractor
+                ? (extractorOreCountMap[selectedDeployBuilding.id]?.[deployOreId] || 0)
+                : targetRecipe
+                ? (machineRecipeCountMap[selectedDeployBuilding.id]?.[targetRecipe.id] || 0)
+                : 0;
+
+              const deviceLabel = isExtractor
+                ? `${ALL_ITEMS[deployOreId]?.name || 'Resource'} Extractor (${selectedDeployBuilding.name})`
+                : targetRecipe
+                ? `${selectedDeployBuilding.name} producing ${targetRecipe.name}`
+                : selectedDeployBuilding.name;
+
+              const isZero = activeCount === 0;
+
+              return (
+                <div
+                  className={`p-3 rounded-lg border flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 font-mono-numbers text-xs transition-all ${
+                    isZero
+                      ? 'bg-amber-950/30 border-amber-500/60 shadow-lg shadow-amber-950/20'
+                      : 'bg-[#0f141a] border-cyan-800/50'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${
+                        isZero
+                          ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
+                          : 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400'
+                      }`}
+                    >
+                      {isZero ? <Sparkles className="w-4 h-4" /> : <Check className="w-4 h-4" />}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-slate-400">Device Status:</span>
+                        <span className="text-white font-bold tracking-wide">{deviceLabel}</span>
+                      </div>
+                      <div className={`text-[11px] ${isZero ? 'text-amber-300 font-semibold' : 'text-slate-400'}`}>
+                        {isZero
+                          ? '★ 0 currently owned — Constructing will deploy your 1st of this device!'
+                          : `You currently have ${activeCount} active in your factory.`}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="shrink-0 self-end sm:self-center">
+                    {isZero ? (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-200 bg-amber-500/30 border border-amber-500/70 px-2.5 py-1 rounded-md shadow-sm">
+                        <span>0 Owned</span>
+                        <span className="text-[10px] text-amber-300 font-normal">(None)</span>
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-cyan-200 bg-cyan-950/80 border border-cyan-700/60 px-2.5 py-1 rounded-md">
+                        <span>x{activeCount}</span>
+                        <span className="text-[10px] text-cyan-400 font-normal">Deployed</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Building Construction Cost Preview */}
             <div className="bg-[#0e1216] border border-[#202732] rounded-lg p-3 font-mono-numbers text-xs">
@@ -503,16 +761,16 @@ export const FactoryAutomation: React.FC<FactoryAutomationProps> = ({
             </div>
 
             {/* Deploy Action */}
-            <div className="flex items-center justify-end gap-3 pt-2">
+            <div className="flex items-center justify-between gap-3 pt-2">
               <button
                 onClick={() => setShowDeployModal(false)}
-                className="py-2 px-4 rounded-lg text-xs font-mono-numbers text-slate-400 hover:text-white"
+                className="py-2 px-4 rounded-lg text-xs font-mono-numbers text-slate-400 hover:text-white hover:bg-[#1a212b] transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmDeploy}
-                className="py-2.5 px-6 bg-[#fa9549] hover:bg-[#fb8533] text-black font-industrial text-sm font-bold rounded-lg shadow transition-colors"
+                className="py-2.5 px-6 bg-[#fa9549] hover:bg-[#fb8533] text-black font-industrial text-sm font-bold rounded-lg shadow-lg hover:shadow-[#fa9549]/20 transition-all active:scale-[0.98] cursor-pointer"
               >
                 Construct Machine
               </button>

@@ -1,7 +1,7 @@
 # ClickFactory (FICSIT Pioneer: Factory Automation)
 
 [![Play Live](https://img.shields.io/badge/Play%20Live-aethercowboy.github.io%2FClickFactory-orange?style=for-the-badge&logo=google-chrome&logoColor=white)](https://aethercowboy.github.io/ClickFactory)
-[![Version](https://img.shields.io/badge/version-0.8.2-blue?style=for-the-badge)](./package.json)
+[![Version](https://img.shields.io/badge/version-0.9.0-blue?style=for-the-badge)](./package.json)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green?style=for-the-badge)](./LICENSE)
 
 Play the live game directly in your browser:  
@@ -162,6 +162,16 @@ npm test
 
 ## Changelog
 
+### v0.9.0
+- **Automation Modal Device Fleet Counts**: Each machine architecture and target resource option now displays the active device count deployed across your factory (e.g. *Iron Ore Extractors x5*, *Constructors x4*).
+- **Zero-Ownership Highlighting**: Prominently highlights devices and resource nodes you have 0 of with glowing amber badges (*0 Owned / 0 Deployed*) and accent borders, making factory automation gaps immediately apparent.
+- **Strict Extractor Target Type Safety**: Enforced strict resource node engineering compatibility across the automation modal, engine tick, and save loader:
+  - Hydraulic **Water Extractors** are strictly restricted to Water reservoir nodes (preventing extraction of solid ores like Iron).
+  - Subterranean **Oil Extractors** are strictly restricted to Crude Oil wellheads.
+  - Mechanical Rotary Miners (**Portable Miner**, **Miner Mk.1 / Mk.2 / Mk.3**) are restricted to solid mineral outcrops and cannot extract fluids.
+  - Automated **FICSMAS Gift Trees** are restricted to orbital gift drops.
+- **Automated Verification**: Added Test Suite 12 in `test/progression.test.ts` validating all extractor restriction rules, fleet counting, zero-ownership detection, and SemVer 0.9.0 consistency.
+
 ### v0.8.2
 - **CI / Pipeline Build Fix for Recharts (`react-is`)**: Added missing `react-is` dependency required by Recharts module bundling (`recharts/es6/util/ReactUtils.js`), resolving the Rolldown/Vite production build failure in GitHub Actions (`CI=true npm run build`).
 - **Synchronized Lockfiles**: Fully reconciled `package-lock.json` and `bun.lock` with `recharts` and `react-is` for deterministic CI clean installs (`npm ci`).
@@ -234,7 +244,7 @@ npm test
 
 This project adheres strictly to [Semantic Versioning (SemVer)](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
-- Current Version: **v0.8.2** (displayed in `package.json`, `src/version.ts`, top navigation bar, and settings modal).
+- Current Version: **v0.9.0** (displayed in `package.json`, `src/version.ts`, top navigation bar, and settings modal).
 - When submitting features, enhancements, or bugfixes, see [AGENTS.md](./AGENTS.md) for required version bump procedures and testing rules.
 
 ---

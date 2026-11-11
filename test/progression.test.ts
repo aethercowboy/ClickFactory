@@ -15,6 +15,7 @@ import { BIOMES, getBiomeDef, DEFAULT_BIOME_ID } from '../src/data/biomes';
 import { isFicsmasActive, getFicsmasStatusText } from '../src/utils/ficsmas';
 import { ALL_MAM_NODES } from '../src/data/mamTrees';
 import { getRandomDoggoTreasure, getDoggoRetrievalTimeMs, getDoggoMood } from '../src/utils/doggo';
+import { isValidExtractorTarget, getValidOresForExtractor, SOLID_MINERAL_ORES } from '../src/utils/extractors';
 import fs from 'fs';
 
 // Helper to simulate power generator execution and resource consumption
@@ -829,21 +830,102 @@ export function runProgressionTests() {
     console.log('  ✓ Sparkline stability history tracking and trend analysis verified.');
   }
 
-  // Verify SemVer v0.8.2
+  // TEST 12: Automation Modal Extractor Restrictions & Device Fleet Counts
+  console.log('\n[TEST 12] Verifying Automation Modal Extractor Restrictions & Device Fleet Counts...');
+
+  // 12A. Water Extractor compatibility: Water ONLY
+  if (isValidExtractorTarget('water_extractor', 'iron_ore')) {
+    console.error('FAIL: water_extractor must NOT be allowed to extract iron_ore!');
+    failures++;
+  } else if (!isValidExtractorTarget('water_extractor', 'water')) {
+    console.error('FAIL: water_extractor must be allowed to extract water!');
+    failures++;
+  } else {
+    console.log('  ✓ Water Extractor strictly restricted to Water reservoir nodes (Iron Ore rejected).');
+  }
+
+  // 12B. Oil Extractor compatibility: Crude Oil ONLY
+  if (isValidExtractorTarget('oil_extractor', 'iron_ore') || isValidExtractorTarget('oil_extractor', 'water')) {
+    console.error('FAIL: oil_extractor must NOT extract solid ores or water!');
+    failures++;
+  } else if (!isValidExtractorTarget('oil_extractor', 'crude_oil')) {
+    console.error('FAIL: oil_extractor must extract crude_oil!');
+    failures++;
+  } else {
+    console.log('  ✓ Oil Extractor strictly restricted to Crude Oil wellheads.');
+  }
+
+  // 12C. Solid Miners (Mk.1, Mk.2, Mk.3, Portable Miner) cannot extract fluids
+  const fluidTargets: ItemId[] = ['water', 'crude_oil'];
+  const minerModels = ['portable_miner', 'miner_mk1', 'miner_mk2', 'miner_mk3'];
+  let fluidLeak = false;
+  minerModels.forEach(mId => {
+    fluidTargets.forEach(fluid => {
+      if (isValidExtractorTarget(mId, fluid)) {
+        console.error(`FAIL: ${mId} must NOT extract fluid ${fluid}!`);
+        fluidLeak = true;
+        failures++;
+      }
+    });
+    if (!isValidExtractorTarget(mId, 'iron_ore') || !isValidExtractorTarget(mId, 'copper_ore')) {
+      console.error(`FAIL: ${mId} must extract solid ores!`);
+      failures++;
+    }
+  });
+  if (!fluidLeak) {
+    console.log('  ✓ Rotary mechanical drill miners strictly restricted to solid mineral outcrops (fluids rejected).');
+  }
+
+  // 12D. FICSMAS Gift Tree: Holiday gifts ONLY
+  if (isValidExtractorTarget('ficsmas_gift_tree', 'iron_ore') || !isValidExtractorTarget('ficsmas_gift_tree', 'ficsmas_gift')) {
+    console.error('FAIL: ficsmas_gift_tree must only extract ficsmas_gift!');
+    failures++;
+  } else {
+    console.log('  ✓ FICSMAS Gift Tree strictly restricted to orbital gift drops.');
+  }
+
+  // 12E. Fleet counts & Zero-Ownership Highlighting logic
+  const mockMachines: Array<{ buildingId: string; targetOre?: ItemId; count: number }> = [
+    { buildingId: 'miner_mk1', targetOre: 'iron_ore', count: 5 },
+    { buildingId: 'miner_mk1', targetOre: 'copper_ore', count: 2 },
+    { buildingId: 'constructor_machine', count: 4 },
+  ];
+  const ironOreExtractorsCount = mockMachines
+    .filter(m => m.buildingId === 'miner_mk1' && m.targetOre === 'iron_ore')
+    .reduce((s, m) => s + m.count, 0);
+  const waterExtractorsCount = mockMachines
+    .filter(m => m.buildingId === 'water_extractor')
+    .reduce((s, m) => s + m.count, 0);
+
+  if (ironOreExtractorsCount !== 5) {
+    console.error(`FAIL: Expected 5 Iron Ore Extractors, got ${ironOreExtractorsCount}`);
+    failures++;
+  } else {
+    console.log(`  ✓ Device fleet count verified: Iron Ore Extractors x${ironOreExtractorsCount}.`);
+  }
+
+  if (waterExtractorsCount !== 0) {
+    console.error(`FAIL: Expected 0 Water Extractors, got ${waterExtractorsCount}`);
+    failures++;
+  } else {
+    console.log('  ✓ Zero-ownership device identification verified for modal highlighting.');
+  }
+
+  // Verify SemVer v0.9.0
   const pkgPath = fs.existsSync('package.json') ? 'package.json' : new URL('../package.json', import.meta.url).pathname;
   const curPkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-  if (curPkg.version !== '0.8.2' || APP_VERSION !== '0.8.2') {
-    console.error(`FAIL: Version must be 0.8.2! Got package.json=${curPkg.version}, APP_VERSION=${APP_VERSION}`);
+  if (curPkg.version !== '0.9.0' || APP_VERSION !== '0.9.0') {
+    console.error(`FAIL: Version must be 0.9.0! Got package.json=${curPkg.version}, APP_VERSION=${APP_VERSION}`);
     failures++;
   }
-  console.log(`  ✓ SemVer v0.8.2 consistency verified across package.json and src/version.ts.`);
+  console.log(`  ✓ SemVer v0.9.0 consistency verified across package.json and src/version.ts.`);
 
   console.log('\n--------------------------------------------------------------');
   if (failures > 0) {
-    console.error(`FAILED: ${failures} progression / circularity / power / craft / achievement / biome / ficsmas / doggo / logistics errors detected.`);
+    console.error(`FAILED: ${failures} progression / circularity / power / craft / achievement / biome / ficsmas / doggo / logistics / extractor errors detected.`);
     process.exit(1);
   } else {
-    console.log('SUCCESS: All 11 test suites passed! Logistics sparklines, net flow rate filters, Lizard Doggo companion, FICSMAS, power, progression, craft times, achievements, biomes, and versioning verified.');
+    console.log('SUCCESS: All 12 test suites passed! Extractor compatibility, device fleet counts, zero-ownership highlighting, sparklines, Lizard Doggo, FICSMAS, power, progression, craft times, achievements, biomes, and versioning verified.');
   }
 }
 

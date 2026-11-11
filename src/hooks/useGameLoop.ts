@@ -20,6 +20,7 @@ import { fireAchievementConfetti } from '../utils/confetti';
 import { getBiomeDef } from '../data/biomes';
 import { isFicsmasActive } from '../utils/ficsmas';
 import { getRandomDoggoTreasure, getDoggoRetrievalTimeMs } from '../utils/doggo';
+import { isValidExtractorTarget } from '../utils/extractors';
 
 export interface ProductionRates {
   producedPerMin: Record<ItemId, number>;
@@ -212,6 +213,18 @@ export function useGameLoop() {
     const building = ALL_BUILDINGS[buildingId];
     if (!building) return false;
 
+    // Validate extractor target compatibility
+    let resolvedTargetOre = targetOre;
+    if (building.category === 'extractor') {
+      if (buildingId === 'ficsmas_gift_tree' && !resolvedTargetOre) {
+        resolvedTargetOre = 'ficsmas_gift';
+      }
+      if (!resolvedTargetOre || !isValidExtractorTarget(buildingId, resolvedTargetOre)) {
+        console.warn(`[FICSIT Safety Protocol] Machine "${building.name}" cannot extract incompatible resource "${resolvedTargetOre}". Construction aborted.`);
+        return false;
+      }
+    }
+
     let canAfford = true;
     setGameState(prev => {
       for (const cost of building.cost) {
@@ -245,7 +258,7 @@ export function useGameLoop() {
 
       // If machine
       const existing = prev.machines.find(
-        m => m.buildingId === buildingId && m.recipeId === recipeId && m.targetOre === targetOre
+        m => m.buildingId === buildingId && m.recipeId === recipeId && m.targetOre === resolvedTargetOre
       );
 
       let updatedMachines: FactoryMachineState[];
@@ -260,7 +273,7 @@ export function useGameLoop() {
             id: Math.random().toString(36).substring(2, 9),
             buildingId,
             recipeId,
-            targetOre,
+            targetOre: resolvedTargetOre,
             count: 1,
             clockSpeed: 1.0,
             powerShards: 0,
@@ -866,6 +879,9 @@ export function useGameLoop() {
           // Case A: Extractor / Miner
           if (building.category === 'extractor' && (machine.targetOre || building.id === 'ficsmas_gift_tree')) {
             const ore = (machine.targetOre || 'ficsmas_gift') as ItemId;
+            if (!isValidExtractorTarget(building.id, ore)) {
+              return; // Extractor assigned to incompatible resource node
+            }
             let baseRate = 2; // portable miner = 2/sec
             if (building.id === 'miner_mk1') baseRate = 10;
             if (building.id === 'miner_mk2') baseRate = 30;
