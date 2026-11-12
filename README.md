@@ -1,7 +1,7 @@
 # ClickFactory (FICSIT Pioneer: Factory Automation)
 
 [![Play Live](https://img.shields.io/badge/Play%20Live-aethercowboy.github.io%2FClickFactory-orange?style=for-the-badge&logo=google-chrome&logoColor=white)](https://aethercowboy.github.io/ClickFactory)
-[![Version](https://img.shields.io/badge/version-0.9.1-blue?style=for-the-badge)](./package.json)
+[![Version](https://img.shields.io/badge/version-0.9.3-blue?style=for-the-badge)](./package.json)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green?style=for-the-badge)](./LICENSE)
 
 Play the live game directly in your browser:  
@@ -161,6 +161,20 @@ npm test
 ---
 
 ## Changelog
+
+### v0.9.3
+- **Streamlined Doggo Companion UI & Space Recovery**:
+  - Removed the bulky full-width `DoggoDockWidget` from the top of the main factory workspace, recovering substantial vertical screen real estate across all production and mining tabs.
+  - Upgraded the top telemetry ribbon's **Lizard Doggo Companion Badge** into a comprehensive, compact companion status widget: displays live companion name, happiness %, and dynamic treasure notification badges (e.g. `🎁 [Item Name]!`) with pulse animations when an item is retrieved.
+  - Clicking the header badge opens the **Doggo Sanctuary Modal** where the interactive SVG illustration, petting animation, mood details, treasure collection, and treat feeding live without consuming factory floor space.
+- **Automated Verification**: Updated test suites in `test/progression.test.ts` for v0.9.3 SemVer validation.
+
+### v0.9.2
+- **Standardized Modal Height & Scroll Architecture**: Resolved modal overflow issues where controls in headers and footers were cut off on smaller viewports:
+  - **Bounded Viewport Height**: All interactive modal dialogs (`FactoryAutomation` deploy modal, `PowerGridModal`, `SpaceElevatorModal`, `DoggoSanctuaryModal`, `BiomePickerModal`, `AchievementsModal`, and `SettingsModal`) are strictly bounded to `max-h-[90vh]` / `max-h-[92vh]`.
+  - **Pinned Headers & Footers**: Header bars and action footers now employ `shrink-0` to guarantee that close buttons, confirm actions, and status indicators remain visible and clickable on every screen size.
+  - **Independent Content Scrolling**: Intermediate modal content containers are configured with `flex-1 overflow-y-auto`, ensuring long lists and selection grids scroll smoothly without pushing header/footer controls out of view.
+- **Automated Verification**: Added Test Suite 13 verifying viewport bounds, pinned headers, pinned footers, and scrollable bodies across all system modals, alongside SemVer 0.9.2 consistency.
 
 ### v0.9.1
 - **Alien Remains & SAM Ore Extraction**: Restored access to Alien Remains by adding a dedicated *Hostile Alien Organisms* survey node to the Extraction & Mining tab (unlocked via Tier 1 Field Research) with manual fauna hunting (`Hunt Hostile Fauna`) and automated harvesting support.

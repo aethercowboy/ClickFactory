@@ -40,7 +40,7 @@ export const BiomePickerModal: React.FC<BiomePickerModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-[#11161d] border border-[#273241] rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden font-sans">
         {/* Modal Header */}
-        <div className="bg-[#17202b] border-b border-[#243140] px-6 py-4 flex items-center justify-between">
+        <div className="shrink-0 bg-[#17202b] border-b border-[#243140] px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#fa9549]/15 border border-[#fa9549]/40 flex items-center justify-center text-[#fa9549]">
               <Compass className="w-5 h-5" />
@@ -213,7 +213,7 @@ export const BiomePickerModal: React.FC<BiomePickerModalProps> = ({
         </div>
 
         {/* Modal Footer */}
-        <div className="bg-[#141b24] border-t border-[#232f3e] px-6 py-3 flex items-center justify-between text-xs text-slate-400 font-mono-numbers">
+        <div className="shrink-0 bg-[#141b24] border-t border-[#232f3e] px-6 py-3 flex items-center justify-between text-xs text-slate-400 font-mono-numbers">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400" />
             <span>Planetary Sector Relocation: Instant deployment with zero progress loss</span>

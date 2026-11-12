@@ -66,8 +66,8 @@ export const DoggoSanctuaryModal: React.FC<DoggoSanctuaryModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
       <div className="relative w-full max-w-xl max-h-[92vh] flex flex-col bg-neutral-900 border border-neutral-700/80 rounded-2xl shadow-2xl overflow-hidden">
-        {/* Sticky Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-neutral-900/95 border-b border-neutral-800 backdrop-blur-md">
+        {/* Pinned Header */}
+        <div className="shrink-0 flex items-center justify-between px-6 py-4 bg-neutral-900 border-b border-neutral-800">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/30">
               <span className="text-xl">🐶</span>
@@ -330,8 +330,8 @@ export const DoggoSanctuaryModal: React.FC<DoggoSanctuaryModalProps> = ({
           </div>
         </div>
 
-        {/* Sticky Footer */}
-        <div className="sticky bottom-0 z-10 px-6 py-3.5 bg-neutral-900/95 border-t border-neutral-800 flex justify-between items-center text-xs text-neutral-400">
+        {/* Pinned Footer */}
+        <div className="shrink-0 px-6 py-3.5 bg-neutral-900 border-t border-neutral-800 flex justify-between items-center text-xs text-neutral-400">
           <span className="flex items-center gap-1.5 text-neutral-400">
             <Smile className="w-4 h-4 text-amber-400" />
             Satisfactory Pioneer Companion

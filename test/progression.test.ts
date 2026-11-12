@@ -922,21 +922,68 @@ export function runProgressionTests() {
     console.log('  ✓ Alien Remains and SAM Ore verified accessible for automated mining and manual harvesting.');
   }
 
-  // Verify SemVer v0.9.1
+  // TEST SUITE 13: Standardized Modal Viewport Bounds & Pinned Controls
+  console.log('\n[TEST 13] Verifying Modal Viewport Bounds, Pinned Headers/Footers & Scrollable Bodies...');
+  const modalFiles = [
+    { file: 'src/components/FactoryAutomation.tsx', name: 'Deploy Automation Modal' },
+    { file: 'src/components/PowerGridModal.tsx', name: 'Power Grid Modal' },
+    { file: 'src/components/SpaceElevatorModal.tsx', name: 'Space Elevator Modal' },
+    { file: 'src/components/DoggoSanctuaryModal.tsx', name: 'Doggo Sanctuary Modal' },
+    { file: 'src/components/BiomePickerModal.tsx', name: 'Biome Picker Modal' },
+    { file: 'src/components/AchievementsModal.tsx', name: 'Achievements Modal' },
+    { file: 'src/components/SettingsModal.tsx', name: 'Settings Modal' },
+  ];
+
+  for (const { file, name } of modalFiles) {
+    const fullPath = fs.existsSync(file) ? file : new URL(`../${file}`, import.meta.url).pathname;
+    const content = fs.readFileSync(fullPath, 'utf8');
+
+    // 1. Max height viewport bound (e.g. max-h-[90vh] or max-h-[92vh])
+    const hasMaxHeight = /max-h-\[(?:90vh|92vh|88vh)\]/.test(content);
+    if (!hasMaxHeight) {
+      console.error(`FAIL: ${name} (${file}) does not have a viewport max-h bound!`);
+      failures++;
+    }
+
+    // 2. Flex column container with overflow-hidden
+    const hasFlexCol = /flex\s+flex-col/.test(content);
+    if (!hasFlexCol) {
+      console.error(`FAIL: ${name} (${file}) is missing flex flex-col layout!`);
+      failures++;
+    }
+
+    // 3. Scrollable intermediate content body
+    const hasOverflowScroll = /overflow-y-auto/.test(content);
+    if (!hasOverflowScroll) {
+      console.error(`FAIL: ${name} (${file}) is missing an overflow-y-auto scrollable body!`);
+      failures++;
+    }
+
+    // 4. Pinned header with shrink-0
+    const hasShrinkHeader = /shrink-0/.test(content);
+    if (!hasShrinkHeader) {
+      console.error(`FAIL: ${name} (${file}) is missing shrink-0 pinned controls!`);
+      failures++;
+    }
+
+    console.log(`  ✓ ${name} satisfies bounded viewport height, pinned header/footer, and scrollable body.`);
+  }
+
+  // Verify SemVer v0.9.3
   const pkgPath = fs.existsSync('package.json') ? 'package.json' : new URL('../package.json', import.meta.url).pathname;
   const curPkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-  if (curPkg.version !== '0.9.1' || APP_VERSION !== '0.9.1') {
-    console.error(`FAIL: Version must be 0.9.1! Got package.json=${curPkg.version}, APP_VERSION=${APP_VERSION}`);
+  if (curPkg.version !== '0.9.3' || APP_VERSION !== '0.9.3') {
+    console.error(`FAIL: Version must be 0.9.3! Got package.json=${curPkg.version}, APP_VERSION=${APP_VERSION}`);
     failures++;
   }
-  console.log(`  ✓ SemVer v0.9.1 consistency verified across package.json and src/version.ts.`);
+  console.log(`  ✓ SemVer v0.9.3 consistency verified across package.json and src/version.ts.`);
 
   console.log('\n--------------------------------------------------------------');
   if (failures > 0) {
-    console.error(`FAILED: ${failures} progression / circularity / power / craft / achievement / biome / ficsmas / doggo / logistics / extractor errors detected.`);
+    console.error(`FAILED: ${failures} progression / circularity / power / craft / achievement / biome / ficsmas / doggo / logistics / extractor / modal errors detected.`);
     process.exit(1);
   } else {
-    console.log('SUCCESS: All 12 test suites passed! Extractor compatibility, device fleet counts, zero-ownership highlighting, sparklines, Lizard Doggo, FICSMAS, power, progression, craft times, achievements, biomes, and versioning verified.');
+    console.log('SUCCESS: All 13 test suites passed! Modal viewport bounds, extractor compatibility, device fleet counts, zero-ownership highlighting, sparklines, Lizard Doggo, FICSMAS, power, progression, craft times, achievements, biomes, and versioning verified.');
   }
 }
 

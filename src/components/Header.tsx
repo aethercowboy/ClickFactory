@@ -15,13 +15,15 @@ import {
   Trophy,
   Compass,
   Gift,
+  Heart,
+  Sparkles,
 } from 'lucide-react';
 import { isFeatureUnlocked } from '../utils/progression';
 import { APP_VERSION } from '../version';
 import { getBiomeDef } from '../data/biomes';
 import { isFicsmasActive } from '../utils/ficsmas';
 import { ACHIEVEMENTS } from '../data/achievements';
-import { Heart } from 'lucide-react';
+import { ALL_ITEMS } from '../data/items';
 
 interface HeaderProps {
   gameState: GameSaveData;
@@ -302,28 +304,42 @@ export const Header: React.FC<HeaderProps> = ({
               <span>Accolades: <strong className="text-white">{(gameState.unlockedAchievements || []).length}</strong>/{ACHIEVEMENTS.length}</span>
             </button>
 
-            {/* Lizard Doggo Companion Button */}
-            {onOpenDoggo && gameState.doggo && (
-              <button
-                onClick={onOpenDoggo}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded border transition-colors text-xs font-mono-numbers ${
-                  gameState.doggo.heldItem
-                    ? 'bg-emerald-950/70 hover:bg-emerald-900 border-emerald-500/80 text-emerald-300 animate-pulse'
-                    : 'bg-[#18202a] hover:bg-[#222c3a] border-[#263445] text-amber-300 hover:text-amber-200'
-                }`}
-                title={`${gameState.doggo.name}: ${gameState.doggo.heldItem ? 'Treasure in pouch! Click to collect.' : `Click to pet ${gameState.doggo.name}! (${Math.round(gameState.doggo.happiness)}% happy)`}`}
-              >
-                <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
-                <span>
-                  🐶 <strong className="text-white">{gameState.doggo.name}</strong>
-                  {gameState.doggo.heldItem ? (
-                    <span className="ml-1 text-[10px] text-emerald-400 font-bold">🎁 ITEM!</span>
+            {/* Lizard Doggo Companion Badge Button */}
+            {onOpenDoggo && gameState.doggo && (() => {
+              const doggo = gameState.doggo;
+              const heldItem = doggo.heldItem;
+              const heldItemDef = heldItem ? ALL_ITEMS[heldItem.itemId] : null;
+
+              return (
+                <button
+                  onClick={onOpenDoggo}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded border transition-all text-xs font-mono-numbers ${
+                    heldItem
+                      ? 'bg-emerald-950/80 hover:bg-emerald-900 border-emerald-500 text-emerald-200 animate-pulse shadow-sm shadow-emerald-500/20'
+                      : 'bg-[#18202a] hover:bg-[#222c3a] border-[#263445] text-amber-300 hover:text-amber-200'
+                  }`}
+                  title={`${doggo.name} (${Math.round(doggo.happiness)}% happy): ${
+                    heldItem
+                      ? `Found ${heldItem.amount}x ${heldItemDef?.name || heldItem.itemId}! Click to open sanctuary and collect.`
+                      : `Click to open sanctuary, pet ${doggo.name}, or feed paleberries.`
+                  }`}
+                >
+                  <span className="text-sm">🐶</span>
+                  <span className="font-bold text-white tracking-wide">{doggo.name}</span>
+                  {heldItem ? (
+                    <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-300 bg-emerald-500/20 border border-emerald-500/40 px-1.5 py-0.2 rounded">
+                      <Gift className="w-3 h-3 text-emerald-400" />
+                      <span>{heldItemDef?.name || 'Treasure'}</span>
+                    </span>
                   ) : (
-                    <span className="ml-1 text-[10px] text-neutral-400">({Math.round(gameState.doggo.happiness)}%)</span>
+                    <span className="flex items-center gap-0.5 text-[11px] text-rose-400">
+                      <Heart className="w-3 h-3 text-rose-500 fill-rose-500" />
+                      <span>{Math.round(doggo.happiness)}%</span>
+                    </span>
                   )}
-                </span>
-              </button>
-            )}
+                </button>
+              );
+            })()}
 
             {/* Biome Sector / Theme Switcher */}
             {onOpenBiomePicker && (

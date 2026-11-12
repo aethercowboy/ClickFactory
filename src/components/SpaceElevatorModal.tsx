@@ -94,7 +94,7 @@ export const SpaceElevatorModal: React.FC<SpaceElevatorModalProps> = ({
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 overflow-y-auto space-y-6">
+        <div className="p-6 overflow-y-auto space-y-6 flex-1">
           {currentPhase ? (
             <>
               {/* Phase Overview */}
@@ -241,6 +241,19 @@ export const SpaceElevatorModal: React.FC<SpaceElevatorModalProps> = ({
               </div>
             </div>
           )}
+        </div>
+
+        {/* Pinned Modal Footer */}
+        <div className="shrink-0 bg-[#0d1014] border-t border-[#242d38] px-6 py-3.5 flex items-center justify-between text-xs font-mono-numbers">
+          <span className="text-slate-400 text-[11px] hidden sm:inline">
+            Project Assembly Tether Terminal · MASSAGE-2(A-B)b Orbit
+          </span>
+          <button
+            onClick={onClose}
+            className="w-full sm:w-auto px-4 py-2 rounded-lg bg-[#202732] hover:bg-[#2c3746] text-white font-medium text-xs transition-colors flex items-center justify-center gap-1.5"
+          >
+            Close Terminal
+          </button>
         </div>
       </div>
     </div>

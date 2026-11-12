@@ -92,7 +92,7 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-[#12161c] border border-[#2b3542] rounded-xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden font-sans">
         {/* Header */}
-        <div className="bg-[#181f28] border-b border-[#273240] px-6 py-4 flex items-center justify-between">
+        <div className="shrink-0 bg-[#181f28] border-b border-[#273240] px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-[#fa9549]/15 border border-[#fa9549]/40 flex items-center justify-center text-[#fa9549]">
               <Trophy className="w-5 h-5" />
@@ -118,7 +118,7 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({
         </div>
 
         {/* Global Progress Bar */}
-        <div className="bg-[#151b22] px-6 py-3 border-b border-[#232d3b] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+        <div className="shrink-0 bg-[#151b22] px-6 py-3 border-b border-[#232d3b] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-3 flex-1">
             <span className="text-slate-400 shrink-0 font-medium">Accolade Completion:</span>
             <div className="flex-1 max-w-md bg-[#0d1117] h-3 rounded-full overflow-hidden border border-[#2b3542]">
@@ -259,7 +259,7 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="bg-[#141a22] border-t border-[#232c3a] px-6 py-3 flex items-center justify-between text-xs text-slate-400 font-mono-numbers">
+        <div className="shrink-0 bg-[#141a22] border-t border-[#232c3a] px-6 py-3 flex items-center justify-between text-xs text-slate-400 font-mono-numbers">
           <span>MASSAGE-2(A-B)b Orbital Operations Ledger</span>
           <button
             onClick={onClose}

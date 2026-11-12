@@ -34,23 +34,26 @@ export const PowerGridModal: React.FC<PowerGridModalProps> = ({
   ].filter(g => gameState.unlockedBuildings.includes(g.id));
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-[#141920] border border-[#242c36] rounded-xl max-w-3xl w-full p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#242c36] pb-3">
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+      <div className="bg-[#141920] border border-[#242c36] rounded-xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden font-sans">
+        {/* Pinned Header */}
+        <div className="shrink-0 bg-[#181f28] border-b border-[#242c36] px-5 sm:px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Zap className="w-5 h-5 text-[#fa9549]" />
-            <h3 className="font-industrial text-xl font-bold text-white tracking-wide">
+            <h3 className="font-industrial text-lg sm:text-xl font-bold text-white tracking-wide">
               FICSIT Electrical Power Substation
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white text-xs font-mono-numbers px-2.5 py-1 rounded hover:bg-[#1c232c]"
+            className="text-slate-400 hover:text-white text-xs font-mono-numbers px-2.5 py-1 rounded hover:bg-[#222c3a] transition-colors"
           >
             Close
           </button>
         </div>
+
+        {/* Scrollable Content Body */}
+        <div className="p-5 sm:p-6 overflow-y-auto space-y-6 flex-1 font-mono-numbers">
 
         {/* Breaker Trip Banner or Normal Status */}
         {isTripped ? (
@@ -235,6 +238,20 @@ export const PowerGridModal: React.FC<PowerGridModalProps> = ({
               );
             })}
           </div>
+        </div>
+        </div>
+
+        {/* Pinned Modal Footer */}
+        <div className="shrink-0 bg-[#101419] border-t border-[#242c36] px-5 sm:px-6 py-3.5 flex items-center justify-between text-xs font-mono-numbers">
+          <span className="text-slate-500 text-[11px] hidden sm:inline">
+            FICSIT Power Network · Real-time Generator Telemetry
+          </span>
+          <button
+            onClick={onClose}
+            className="w-full sm:w-auto px-4 py-2 rounded-lg bg-[#fa9549] hover:bg-[#fb8533] text-black font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 shadow"
+          >
+            Close Substation
+          </button>
         </div>
       </div>
     </div>

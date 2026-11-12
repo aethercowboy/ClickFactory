@@ -467,19 +467,23 @@ export const FactoryAutomation: React.FC<FactoryAutomationProps> = ({
 
       {/* Deploy Machine Modal */}
       {showDeployModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#141920] border border-[#242c36] rounded-xl max-w-xl w-full p-6 shadow-2xl space-y-5">
-            <div className="flex items-center justify-between border-b border-[#242c36] pb-3">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-[#141920] border border-[#242c36] rounded-xl max-w-xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            {/* Pinned Modal Header */}
+            <div className="shrink-0 bg-[#181f28] border-b border-[#242c36] px-5 sm:px-6 py-4 flex items-center justify-between">
               <h3 className="font-industrial text-lg font-bold text-white tracking-wide">
                 Deploy Automated Production Line
               </h3>
               <button
                 onClick={() => setShowDeployModal(false)}
-                className="text-slate-400 hover:text-white text-xs font-mono-numbers px-2 py-1 rounded hover:bg-[#1c232c]"
+                className="text-slate-400 hover:text-white text-xs font-mono-numbers px-2.5 py-1 rounded hover:bg-[#222c3a] transition-colors"
               >
                 Close
               </button>
             </div>
+
+            {/* Scrollable Content Body */}
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-5 flex-1">
 
             {/* Select Machine Type */}
             <div className="space-y-2">
@@ -760,8 +764,10 @@ export const FactoryAutomation: React.FC<FactoryAutomationProps> = ({
               </div>
             </div>
 
-            {/* Deploy Action */}
-            <div className="flex items-center justify-between gap-3 pt-2">
+            </div>
+
+            {/* Pinned Modal Footer */}
+            <div className="shrink-0 bg-[#101419] border-t border-[#242c36] px-5 sm:px-6 py-3.5 flex items-center justify-between gap-3">
               <button
                 onClick={() => setShowDeployModal(false)}
                 className="py-2 px-4 rounded-lg text-xs font-mono-numbers text-slate-400 hover:text-white hover:bg-[#1a212b] transition-colors"

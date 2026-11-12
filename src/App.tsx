@@ -17,7 +17,6 @@ import { BoomboxWidget } from './components/BoomboxWidget';
 import { BiomePickerModal } from './components/BiomePickerModal';
 import { SnowEffect } from './components/SnowEffect';
 import { DoggoSanctuaryModal } from './components/DoggoSanctuaryModal';
-import { DoggoDockWidget } from './components/DoggoDockWidget';
 import { audio } from './utils/audio';
 import { INITIAL_SAVE } from './utils/saveLoad';
 import { isFeatureUnlocked } from './utils/progression';
@@ -190,14 +189,6 @@ export default function App() {
 
       {/* Main Content Workspace */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-6 py-6 space-y-6">
-        {/* Lizard Doggo Companion Quick Dock */}
-        <DoggoDockWidget
-          gameState={gameState}
-          onOpenSanctuary={() => setIsDoggoModalOpen(true)}
-          onPet={petDoggo}
-          onCollectItem={collectDoggoItem}
-        />
-
         {/* Factory Visualizer overview (shows on extraction, factory, stats) */}
         {['extraction', 'factory', 'stats'].includes(activeTab) && (
           <FactoryVisualizer
