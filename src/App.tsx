@@ -40,6 +40,7 @@ export default function App() {
     dismantleMachine,
     setMachineOverclock,
     resetPowerBreaker,
+    toggleGeneratorPause,
     contributeMilestone,
     deliverToSpaceElevator,
     launchSpaceElevator,
@@ -363,6 +364,7 @@ export default function App() {
         onClose={() => setIsPowerGridOpen(false)}
         onResetBreaker={resetPowerBreaker}
         onBuildGenerator={bId => buildMachine(bId)}
+        onToggleGeneratorPause={toggleGeneratorPause}
       />
 
       {/* Settings Modal */}

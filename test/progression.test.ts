@@ -969,21 +969,90 @@ export function runProgressionTests() {
     console.log(`  ✓ ${name} satisfies bounded viewport height, pinned header/footer, and scrollable body.`);
   }
 
-  // Verify SemVer v0.9.3
-  const pkgPath = fs.existsSync('package.json') ? 'package.json' : new URL('../package.json', import.meta.url).pathname;
-  const curPkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-  if (curPkg.version !== '0.9.3' || APP_VERSION !== '0.9.3') {
-    console.error(`FAIL: Version must be 0.9.3! Got package.json=${curPkg.version}, APP_VERSION=${APP_VERSION}`);
+  // TEST SUITE 14: Integrated HUB Biomass Burners & Early Tier 0 Power
+  console.log('\n[TEST 14] Verifying Integrated HUB Biomass Burners, Efficiency & 2-Unit Cap...');
+  const hubBurnerDef = ALL_BUILDINGS.hub_biomass_burner;
+  const standaloneBurnerDef = ALL_BUILDINGS.biomass_burner;
+
+  if (!hubBurnerDef || hubBurnerDef.category !== 'power') {
+    console.error('FAIL: hub_biomass_burner must exist in ALL_BUILDINGS with category "power"!');
+    failures++;
+  } else if ((hubBurnerDef.powerGeneration || 0) >= (standaloneBurnerDef.powerGeneration || 0)) {
+    console.error(
+      `FAIL: HUB Biomass Burner (${hubBurnerDef.powerGeneration} MW) must produce less power than standalone Biomass Burner (${standaloneBurnerDef.powerGeneration} MW)!`
+    );
+    failures++;
+  } else if (
+    (hubBurnerDef.fuelRequired?.fuelBurnRates?.leaves || 0) <=
+    (standaloneBurnerDef.fuelRequired?.fuelBurnRates?.leaves || 0)
+  ) {
+    console.error('FAIL: HUB Biomass Burner must be less fuel-efficient (higher burn rate) than standalone Biomass Burner!');
+    failures++;
+  } else {
+    console.log(
+      `  ✓ HUB Biomass Burner rated at ${hubBurnerDef.powerGeneration} MW (vs ${standaloneBurnerDef.powerGeneration} MW standalone) with 1.5x fuel burn rate.`
+    );
+  }
+
+  // Verify Upgrade 2 grants 1st HUB Biomass Burner and unlocks Power Grid
+  const u2 = ALL_MILESTONES.find(m => m.id === 'tier0_upgrade_2')!;
+  const u4 = ALL_MILESTONES.find(m => m.id === 'tier0_upgrade_4')!;
+  const u2Grant = u2.unlocks.grantGenerators?.find(g => g.buildingId === 'hub_biomass_burner');
+  const u4Grant = u4.unlocks.grantGenerators?.find(g => g.buildingId === 'hub_biomass_burner');
+
+  if (!u2Grant || u2Grant.count !== 1 || u2Grant.maxTotal !== 2) {
+    console.error('FAIL: tier0_upgrade_2 must grant 1st HUB Biomass Burner (maxTotal: 2)!');
     failures++;
   }
-  console.log(`  ✓ SemVer v0.9.3 consistency verified across package.json and src/version.ts.`);
+  if (!u4Grant || u4Grant.count !== 1 || u4Grant.maxTotal !== 2) {
+    console.error('FAIL: tier0_upgrade_4 must grant 2nd HUB Biomass Burner (maxTotal: 2)!');
+    failures++;
+  }
+
+  const stateAfterU2: GameSaveData = {
+    ...INITIAL_SAVE,
+    completedMilestones: ['tier0_upgrade_1', 'tier0_upgrade_2'],
+    unlockedBuildings: ['portable_miner', 'smelter', 'hub_biomass_burner'],
+    unlockedFeatures: ['power_grid'],
+  };
+  if (!isFeatureUnlocked(stateAfterU2, 'power_grid')) {
+    console.error('FAIL: power_grid must unlock at HUB Upgrade 2 when Smelter + 1st HUB Burner arrive!');
+    failures++;
+  } else {
+    console.log('  ✓ HUB Upgrade 2 unlocks Power Grid and installs 1st HUB Biomass Burner; Upgrade 4 installs 2nd (max 2).');
+  }
+
+  // Simulate HUB Biomass Burner output & fuel burn vs standalone
+  const simHubBurner = simulateGeneratorStep(
+    [{ buildingId: 'hub_biomass_burner', count: 2, isPaused: false }],
+    { ...INITIAL_SAVE.inventory, leaves: 100 },
+    10
+  );
+  if (simHubBurner.capacity !== 40) {
+    console.error(`FAIL: 2x HUB Biomass Burners should output 40 MW, got ${simHubBurner.capacity} MW`);
+    failures++;
+  } else if (Math.abs((simHubBurner.consumed.leaves || 0) - 30) > 0.01) {
+    console.error(`FAIL: 2x HUB Biomass Burners should consume 30 leaves in 10s (90/min each), got ${simHubBurner.consumed.leaves}`);
+    failures++;
+  } else {
+    console.log(`  ✓ 2x HUB Biomass Burners operating: +40 MW, consumed ${simHubBurner.consumed.leaves?.toFixed(1)} leaves in 10s.`);
+  }
+
+  // Verify SemVer v0.10.0
+  const pkgPath = fs.existsSync('package.json') ? 'package.json' : new URL('../package.json', import.meta.url).pathname;
+  const curPkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+  if (curPkg.version !== '0.10.0' || APP_VERSION !== '0.10.0') {
+    console.error(`FAIL: Version must be 0.10.0! Got package.json=${curPkg.version}, APP_VERSION=${APP_VERSION}`);
+    failures++;
+  }
+  console.log(`  ✓ SemVer v0.10.0 consistency verified across package.json and src/version.ts.`);
 
   console.log('\n--------------------------------------------------------------');
   if (failures > 0) {
-    console.error(`FAILED: ${failures} progression / circularity / power / craft / achievement / biome / ficsmas / doggo / logistics / extractor / modal errors detected.`);
+    console.error(`FAILED: ${failures} progression / circularity / power / craft / achievement / biome / ficsmas / doggo / logistics / extractor / modal / hub burner errors detected.`);
     process.exit(1);
   } else {
-    console.log('SUCCESS: All 13 test suites passed! Modal viewport bounds, extractor compatibility, device fleet counts, zero-ownership highlighting, sparklines, Lizard Doggo, FICSMAS, power, progression, craft times, achievements, biomes, and versioning verified.');
+    console.log('SUCCESS: All 14 test suites passed! HUB Biomass Burners, modal viewport bounds, extractor compatibility, device fleet counts, zero-ownership highlighting, sparklines, Lizard Doggo, FICSMAS, power, progression, craft times, achievements, biomes, and versioning verified.');
   }
 }
 

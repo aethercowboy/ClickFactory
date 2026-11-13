@@ -101,7 +101,7 @@ export const Header: React.FC<HeaderProps> = ({
       label: 'Power Grid',
       shortLabel: 'Power',
       unlocked: isPowerUnlocked,
-      lockHint: 'Locked: Requires HUB Upgrade 5 (Power Generation)',
+      lockHint: 'Locked: Requires HUB Upgrade 2 (HUB Biomass Burner)',
     },
     {
       id: 'mam',
@@ -280,7 +280,7 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             ) : (
               <div
-                title="Power Substation: Complete HUB Upgrade 5 (Power Generation)"
+                title="Power Substation: Complete HUB Upgrade 2 (Smelting & Copper) to activate integrated HUB Biomass Burner"
                 className="flex items-center gap-2 px-2 py-0.5 text-slate-600 text-[11px]"
               >
                 <Lock className="w-3 h-3 text-slate-600" />

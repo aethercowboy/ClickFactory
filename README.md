@@ -1,7 +1,7 @@
 # ClickFactory (FICSIT Pioneer: Factory Automation)
 
 [![Play Live](https://img.shields.io/badge/Play%20Live-aethercowboy.github.io%2FClickFactory-orange?style=for-the-badge&logo=google-chrome&logoColor=white)](https://aethercowboy.github.io/ClickFactory)
-[![Version](https://img.shields.io/badge/version-0.9.3-blue?style=for-the-badge)](./package.json)
+[![Version](https://img.shields.io/badge/version-0.10.0-blue?style=for-the-badge)](./package.json)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green?style=for-the-badge)](./LICENSE)
 
 Play the live game directly in your browser:  
@@ -161,6 +161,18 @@ npm test
 ---
 
 ## Changelog
+
+### v0.10.0
+- **Integrated HUB Biomass Burners (Satisfactory-Accurate Tier 0 Power)**:
+  - Added `HUB Biomass Burner` (`hub_biomass_burner`), an integrated combustion generator built directly into the HUB chassis (capped at 2 units total via HUB upgrades).
+  - **Balanced Early Output & Efficiency**: Each HUB Biomass Burner produces **20 MW** (compared to 30 MW for standalone Biomass Burners) with lower fuel efficiency (1.5× burn rate: 90 Leaves/min, 30 Biomass/min, or 9 Solid Biofuel/min), rewarding pioneers who upgrade to standalone Biomass Burners at HUB Upgrade 5.
+  - **Progressive HUB Integration**:
+    - **HUB Upgrade 2 (Smelting & Copper)**: Unlocks the Smelter alongside the **1st HUB Biomass Burner (+20 MW)** and activates the **Power Grid Substation** monitor immediately so early machines have a real power source.
+    - **HUB Upgrade 4 (Reinforced Plating)**: Unlocks Miner Mk.1 alongside the **2nd HUB Biomass Burner (+20 MW)**, expanding integrated HUB capacity to 40 MW (2/2 max).
+    - **HUB Upgrade 5 (Power Generation)**: Unlocks standalone **30 MW Biomass Burners** and **Biomass Refining**.
+  - **Power Grid Physics & Pause Toggle**: Grids now properly trip if fuel runs out leaving demand above capacity (`0 MW`), and generators can be paused/resumed from the Substation modal to conserve fuel.
+  - **Save Migration**: Existing saves automatically receive their earned HUB Biomass Burners matching completed Tier 0 upgrades.
+- **Automated Verification**: Added Test Suite 14 verifying HUB Biomass Burner power output, lower fuel efficiency, 2-unit cap, early Power Grid unlock, and SemVer 0.10.0 consistency.
 
 ### v0.9.3
 - **Streamlined Doggo Companion UI & Space Recovery**:

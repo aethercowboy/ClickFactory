@@ -1781,6 +1781,28 @@ export const ALL_BUILDINGS: Record<string, BuildingDef> = {
   },
 
   // Power Generation
+  hub_biomass_burner: {
+    id: 'hub_biomass_burner',
+    name: 'HUB Biomass Burner',
+    category: 'power',
+    generatorType: 'hub_biomass_burner',
+    description:
+      'Integrated starter burner attached to the HUB (max 2 via HUB Upgrades). Generates 20 MW with lower fuel efficiency than standalone burners.',
+    cost: [], // Granted automatically as part of HUB Upgrades (up to 2)
+    powerConsumption: 0,
+    powerGeneration: 20, // Lower capacity than standalone Biomass Burner (30 MW)
+    fuelRequired: {
+      fuelItems: ['solid_biofuel', 'biomass', 'leaves'],
+      burnRatePerMin: 9,
+      fuelBurnRates: {
+        solid_biofuel: 9, // Standalone is 6/min (50% faster burn for 33% less power)
+        biomass: 30,      // Standalone is 20/min
+        leaves: 90,       // Standalone is 60/min
+      },
+    },
+    tierUnlocked: 0,
+    icon: 'Zap',
+  },
   biomass_burner: {
     id: 'biomass_burner',
     name: 'Biomass Burner',

@@ -128,6 +128,7 @@ export type MachineBuildingType =
   | 'quantum_encoder';
 
 export type GeneratorBuildingType =
+  | 'hub_biomass_burner'
   | 'biomass_burner'
   | 'coal_generator'
   | 'fuel_generator'
@@ -216,6 +217,7 @@ export interface MilestoneDef {
     buildings?: string[];
     ores?: ItemId[];
     features?: string[];
+    grantGenerators?: Array<{ buildingId: string; count: number; maxTotal?: number }>;
   };
 }
 

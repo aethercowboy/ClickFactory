@@ -213,6 +213,11 @@ export function useGameLoop() {
     const building = ALL_BUILDINGS[buildingId];
     if (!building) return false;
 
+    // Integrated HUB Biomass Burners are strictly granted by HUB upgrades (up to 2)
+    if (buildingId === 'hub_biomass_burner') {
+      return false;
+    }
+
     // Validate extractor target compatibility
     let resolvedTargetOre = targetOre;
     if (building.category === 'extractor') {
@@ -373,6 +378,16 @@ export function useGameLoop() {
     });
   }, [addNotification]);
 
+  // Toggle Pause/Resume for a generator plant group
+  const toggleGeneratorPause = useCallback((buildingId: string) => {
+    setGameState(prev => ({
+      ...prev,
+      generators: prev.generators.map(g =>
+        g.buildingId === buildingId ? { ...g, isPaused: !g.isPaused } : g
+      ),
+    }));
+  }, []);
+
   // Submit items to active HUB Milestone
   const contributeMilestone = useCallback((itemId: ItemId, amount: number) => {
     setGameState(prev => {
@@ -412,6 +427,34 @@ export function useGameLoop() {
         const newUnlockedBuildings = [...new Set([...prev.unlockedBuildings, ...(milestone.unlocks.buildings || [])])];
         const newUnlockedFeatures = [...new Set([...(prev.unlockedFeatures || []), ...(milestone.unlocks.features || [])])];
 
+        // Auto-install HUB-integrated generators granted by milestone upgrades (e.g., up to 2 HUB Biomass Burners)
+        let newGenerators = prev.generators;
+        if (milestone.unlocks.grantGenerators && milestone.unlocks.grantGenerators.length > 0) {
+          newGenerators = [...prev.generators];
+          for (const grant of milestone.unlocks.grantGenerators) {
+            const idx = newGenerators.findIndex(g => g.buildingId === grant.buildingId);
+            if (idx >= 0) {
+              const existing = newGenerators[idx];
+              const nextCount =
+                grant.maxTotal !== undefined
+                  ? Math.min(grant.maxTotal, existing.count + grant.count)
+                  : existing.count + grant.count;
+              newGenerators[idx] = { ...existing, count: nextCount };
+            } else {
+              const nextCount =
+                grant.maxTotal !== undefined
+                  ? Math.min(grant.maxTotal, grant.count)
+                  : grant.count;
+              newGenerators.push({
+                id: Math.random().toString(36).substring(2, 9),
+                buildingId: grant.buildingId,
+                count: nextCount,
+                isPaused: false,
+              });
+            }
+          }
+        }
+
         // Find next milestone that is unlocked and not completed
         const nextMilestone = ALL_MILESTONES.find(m => {
           if (newCompleted.includes(m.id)) return false;
@@ -432,6 +475,7 @@ export function useGameLoop() {
           unlockedRecipes: newUnlockedRecipes,
           unlockedBuildings: newUnlockedBuildings,
           unlockedFeatures: newUnlockedFeatures,
+          generators: newGenerators,
           milestoneContributions: {
             ...prev.milestoneContributions,
             [milestone.id]: currentMilestoneContribs,
@@ -858,11 +902,17 @@ export function useGameLoop() {
           }
         });
 
-        // 3. Grid Trip Check
-        if (powerCapacity > 0 && powerConsumption > powerCapacity && !isTripped) {
+        // 3. Grid Trip Check (also trips if fuel/water runs out leaving capacity < consumption)
+        let trippedThisTick = false;
+        if (powerConsumption > powerCapacity && !isTripped) {
           isTripped = true;
+          trippedThisTick = true;
           audio.playPowerTrip();
-          addNotification('Power Grid Tripped!', `Consumption (${Math.round(powerConsumption)} MW) exceeded capacity (${Math.round(powerCapacity)} MW). Reset the breaker.`, 'power_trip');
+          addNotification(
+            'Power Grid Tripped!',
+            `Consumption (${Math.round(powerConsumption)} MW) exceeded capacity (${Math.round(powerCapacity)} MW). Ensure generators have fuel and reset the breaker.`,
+            'power_trip'
+          );
         }
 
         // 4. Run Machine Production (only if not tripped, or power consumption is 0)
@@ -871,8 +921,8 @@ export function useGameLoop() {
           const building = ALL_BUILDINGS[machine.buildingId];
           if (!building) return;
 
-          // If machine consumes power and grid is tripped, it halts!
-          if (building.powerConsumption > 0 && isTripped) {
+          // If machine consumes power and grid is tripped or unpowered, it halts!
+          if (building.powerConsumption > 0 && (isTripped || powerConsumption > powerCapacity)) {
             return;
           }
 
@@ -1146,6 +1196,7 @@ export function useGameLoop() {
             ...prevState.pioneerStats,
             manualCrafts: prevState.pioneerStats.manualCrafts + manualCraftsFinishedThisTick,
             totalPartsMade: prevState.pioneerStats.totalPartsMade + partsProducedThisTick,
+            powerTripsCount: (prevState.pioneerStats.powerTripsCount || 0) + (trippedThisTick ? 1 : 0),
             playtimeSeconds: prevState.pioneerStats.playtimeSeconds + clampedDelta,
           },
         };
@@ -1212,6 +1263,7 @@ export function useGameLoop() {
     dismantleMachine,
     setMachineOverclock,
     resetPowerBreaker,
+    toggleGeneratorPause,
     contributeMilestone,
     deliverToSpaceElevator,
     launchSpaceElevator,

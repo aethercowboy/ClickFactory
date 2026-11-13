@@ -26,8 +26,11 @@ export function isFeatureUnlocked(gameState: GameSaveData, feature: string): boo
       );
 
     case 'power_grid':
-      // Power Grid unlocks with Tier 0 Upgrade 5 (Power Generation)
-      return isMilestoneCompleted(gameState, 'tier0_upgrade_5');
+      // Power Grid unlocks with Tier 0 Upgrade 2 (1st HUB Biomass Burner) or Upgrade 5
+      return (
+        isMilestoneCompleted(gameState, 'tier0_upgrade_2') ||
+        isMilestoneCompleted(gameState, 'tier0_upgrade_5')
+      );
 
     case 'mam_research':
       // MAM Research unlocks with Tier 1 Field Research

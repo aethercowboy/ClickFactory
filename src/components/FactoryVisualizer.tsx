@@ -176,7 +176,7 @@ export const FactoryVisualizer: React.FC<FactoryVisualizerProps> = ({
               {isPowerUnlocked ? `${capacity} MW Grid Capacity` : 'Power Grid Locked'}
             </div>
             <div className="text-[11px] text-slate-500 mt-1">
-              {isPowerUnlocked ? `${totalGeneratorsCount} Plants (${consumption} MW Load)` : 'Requires HUB Upgrade 5'}
+              {isPowerUnlocked ? `${totalGeneratorsCount} Plants (${consumption} MW Load)` : 'Requires HUB Upgrade 2'}
             </div>
           </button>
 

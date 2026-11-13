@@ -166,7 +166,12 @@ export function loadGame(): GameSaveData {
       return m;
     });
     let restoredOres: ItemId[] = parsed.unlockedOres || INITIAL_SAVE.unlockedOres;
+    let restoredBuildings: string[] = parsed.unlockedBuildings || INITIAL_SAVE.unlockedBuildings;
+    let restoredFeatures: string[] = parsed.unlockedFeatures || [];
+    let restoredGenerators = Array.isArray(parsed.generators) ? [...parsed.generators] : [];
+
     if (parsed.completedMilestones && Array.isArray(parsed.completedMilestones)) {
+      let expectedHubBurners = 0;
       parsed.completedMilestones.forEach((mId: string) => {
         const ms = ALL_MILESTONES.find(m => m.id === mId);
         if (ms?.unlocks?.ores) {
@@ -176,16 +181,58 @@ export function loadGame(): GameSaveData {
             }
           });
         }
+        if (ms?.unlocks?.buildings) {
+          ms.unlocks.buildings.forEach(b => {
+            if (!restoredBuildings.includes(b)) {
+              restoredBuildings = [...restoredBuildings, b];
+            }
+          });
+        }
+        if (ms?.unlocks?.features) {
+          ms.unlocks.features.forEach(f => {
+            if (!restoredFeatures.includes(f)) {
+              restoredFeatures = [...restoredFeatures, f];
+            }
+          });
+        }
+        if (ms?.unlocks?.grantGenerators) {
+          ms.unlocks.grantGenerators.forEach(grant => {
+            if (grant.buildingId === 'hub_biomass_burner') {
+              expectedHubBurners = grant.maxTotal !== undefined
+                ? Math.min(grant.maxTotal, expectedHubBurners + grant.count)
+                : expectedHubBurners + grant.count;
+            }
+          });
+        }
       });
+
+      if (expectedHubBurners > 0) {
+        const existingHubIdx = restoredGenerators.findIndex((g: any) => g.buildingId === 'hub_biomass_burner');
+        if (existingHubIdx >= 0) {
+          const cur = restoredGenerators[existingHubIdx];
+          if ((cur.count || 0) < expectedHubBurners) {
+            restoredGenerators[existingHubIdx] = { ...cur, count: expectedHubBurners };
+          }
+        } else {
+          restoredGenerators.push({
+            id: 'hub_biomass_burner_init',
+            buildingId: 'hub_biomass_burner',
+            count: expectedHubBurners,
+            isPaused: false,
+          });
+        }
+      }
     }
 
     return {
       ...INITIAL_SAVE,
       ...parsed,
       machines: sanitizedMachines,
+      generators: restoredGenerators,
       unlockedOres: restoredOres,
+      unlockedBuildings: restoredBuildings,
       inventory: { ...INITIAL_SAVE.inventory, ...parsed.inventory },
-      unlockedFeatures: parsed.unlockedFeatures || [],
+      unlockedFeatures: restoredFeatures,
       unlockedAchievements: parsed.unlockedAchievements || [],
       selectedBiome: parsed.selectedBiome || 'grass_fields',
       ficsmasMode: parsed.ficsmasMode || 'auto',
